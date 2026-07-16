@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
     }
 
     h2 {
@@ -52,16 +52,37 @@
 </head>
 
 <body>
-  <h1>💰 MVP Doações - Supabase</h1>
-
   <!-- Login / Signup -->
-  <div id="auth-section" class="section">
-    <h2>Login / Cadastro</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Senha">
-    <button onclick="signUp()">Cadastrar</button>
-    <button onclick="signIn()">Entrar</button>
-    <button onclick="signOut()"><i class="fi fi-rr-exit"></i></button>
+  <div id="login-container" class="login-container">
+    <div class="login-card">
+      <div class="logo-circle">💰</div>
+      <h1>MVP Doações - Supabase</h1>
+      <div id="auth-section" class="section auth-section">
+        <h2>Login / Cadastro</h2>
+        <div class="form-group">
+          <input type="email" id="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="password" placeholder="Senha">
+        </div>
+        <button class="btn-block" onclick="signIn()">Entrar</button>
+        <div class="auth-links">
+          <a onclick="signUp()">Cadastrar</a>
+          <button class="icon-btn" onclick="signOut()" title="Sair"><i class="fi fi-rr-exit"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra compacta exibida após o login -->
+  <div id="logged-in-bar" class="logged-in-bar hidden">
+    <div class="logo-circle logo-circle-sm">💰</div>
+    <span class="logged-in-text">Logado como <strong id="userEmailDisplay"></strong></span>
+    <button class="icon-btn" onclick="signOut()" title="Sair">
+      <i class="fi fi-rr-exit"></i> Sair
+    </button>
+  </div>
+  </div>
   </div>
 
   <!-- Doadores -->
@@ -211,6 +232,11 @@
     }
 
     function toggleSections(show) {
+      document.getElementById("login-container").classList.toggle("hidden", show);
+      document.getElementById("logged-in-bar").classList.toggle("hidden", !show);
+      if (show && currentUser) {
+        document.getElementById("userEmailDisplay").textContent = currentUser.email;
+      }
       document.getElementById("doador-section").classList.toggle("hidden", !show);
       document.getElementById("doacao-section").classList.toggle("hidden", !show);
       document.getElementById("interacao-section").classList.toggle("hidden", !show);
