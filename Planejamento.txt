@@ -33,23 +33,12 @@ Pra agora:
     - nome do doador salva com 1ª letra maiúscula - OK
     - ordenar tabelas clicando no cabeçalho da coluna - OK
 
-Auditoria geral (antes de apresentar) - 2026-09-19:
-    - campo "Doador" não aparecia selecionado ao editar uma Interação (bug real, corrigido)
-    - status da doação nova vinha "pendente" minúsculo do banco, não batia com o resto do sistema - OK (forçado "Pendente" no insert)
-    - trava: não deixa mais excluir doador que tenha doação ou interação vinculada - OK
-    - removido console.log esquecido na tela de Interações
-    -> PENDENTE: excluir Doador/Doação não pede admin, mas excluir Interação pede - decidir se padroniza
-
-Pendente (reavaliar banco de dados - fazer depois):
-    - campo "observações/detalhes" na doação
-    - campo "tipo de pessoa" (física/jurídica) no doador + usar como filtro na coluna
-    - campo "tipo de frequência"/"tipo de doador" no cadastro de doador
-        -> antes de criar no banco: fechar com o professor se é 1 campo só ou 2 campos diferentes (frequência = esporádico/recorrente x tipo = padrinho/recorrente)
 
 
 Pro futuro:
 - Sistema de login com sessão e cadastro
 - Aplicar os maxins do scss nos estilos pra simplificar  
+- Nas abas do menu adicionar total da tabela. exp: Doadores (4)
 - Página doações: adicionar card com valor do último mês, média dos ultimos meses, um calendario interativo mostrando valores por dia
 - adicionar propriedade "Detalhes" pra tabela de doações
 - melhorar responsividade da tabela
