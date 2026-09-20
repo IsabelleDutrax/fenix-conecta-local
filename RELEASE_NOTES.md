@@ -4,6 +4,13 @@ Histórico de mudanças do projeto, organizado por commit/entrega. Formato inspi
 
 
 
+## 2026-09-20 — Atalho de teclado (Enter) e favicon
+### Adicionado
+- Tecla Enter agora funciona como atalho pro botão "Entrar" na tela de login (campos de e-mail e senha) e pro botão "Salvar" nos modais de criação/edição (Doador, Doação, Interação); dentro de uma textarea o Enter continua quebrando linha normalmente, sem disparar o salvar.
+- Favicon do sistema (ícone da aba do navegador), usando os arquivos gerados pelo favicon.io (`img/favicon_io/`): `.ico`, PNGs 16x16/32x32, ícone para Apple/iOS e `site.webmanifest`.
+### Corrigido
+- Caminhos dos ícones dentro do `site.webmanifest` estavam absolutos (`/android-chrome-...png`), apontando pra raiz do site em vez da pasta `img/favicon_io/`; corrigido para caminhos relativos.
+
 ## 2026-09-19 — Auditoria geral antes da apresentação + correções
 ### Adicionado
 - Validação de telefone do doador (10 ou 11 dígitos com DDD, só quando preenchido) na criação e edição.

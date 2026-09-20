@@ -1491,3 +1491,30 @@ customElements.define(
     }
   },
 );
+
+// --------------
+// ENTER = ATALHO PARA SALVAR (login e modais)
+// --------------
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+
+  // Dentro de uma textarea, Enter deve quebrar linha normalmente
+  if (e.target.tagName === "TEXTAREA") return;
+
+  // Se algum modal estiver aberto, clica no botão "Salvar" do rodapé dele
+  const modalAberto = document.querySelector(".modal.show");
+  if (modalAberto) {
+    const btnSalvar = modalAberto.querySelector(".modal-footer .btn-orange");
+    if (btnSalvar) {
+      e.preventDefault();
+      btnSalvar.click();
+    }
+    return;
+  }
+
+  // Login: Enter nos campos de email/senha aciona o botão "Entrar"
+  if (e.target.id === "email" || e.target.id === "password") {
+    e.preventDefault();
+    document.querySelector("#auth-section .btn-block")?.click();
+  }
+});
