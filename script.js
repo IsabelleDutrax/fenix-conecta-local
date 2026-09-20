@@ -281,6 +281,10 @@ async function loadDoadores() {
 function renderDoadorTable() {
   const tbody = document.querySelector("#doadorTable tbody");
   tbody.innerHTML = "";
+  if (!doadoresData.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Adicione dados à tabela</td></tr>`;
+    return;
+  }
   doadoresData.forEach((d) => {
     const totalDoacoes = doacoesData.filter(
       (doacao) => doacao.id_doador === d.id_doador,
@@ -805,7 +809,9 @@ async function loadDoacoes() {
   doacoesData = data;
 
   const tbody = document.querySelector("#doacaoTable tbody");
-  tbody.innerHTML = "";
+  tbody.innerHTML = data.length
+    ? ""
+    : `<tr><td colspan="5" class="text-center text-muted">Adicione dados à tabela</td></tr>`;
   data.forEach((d) => {
     tbody.innerHTML += `<tr>
       <td>${nomeDoador(d.id_doador)}</td>
@@ -1099,7 +1105,9 @@ async function loadInteracoes() {
   interacoesData = data;
 
   const tbody = document.querySelector("#interacaoTable tbody");
-  tbody.innerHTML = "";
+  tbody.innerHTML = data.length
+    ? ""
+    : `<tr><td colspan="5" class="text-center text-muted">Adicione dados à tabela</td></tr>`;
   data.forEach((i) => {
     tbody.innerHTML += `<tr>
       <td>${nomeDoador(i.id_doador)}</td>

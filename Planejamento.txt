@@ -32,6 +32,7 @@ Pra agora:
     - reordenar campos dos modais de doador (nome, email, telefone, cpf, endereço) - OK
     - nome do doador salva com 1ª letra maiúscula - OK
     - ordenar tabelas clicando no cabeçalho da coluna - OK
+    - adicionar favicon - OK
 
 
 
