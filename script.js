@@ -1117,7 +1117,7 @@ async function loadInteracoes() {
       <td class="actions-td">
         <div class="actions-content">
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateInteracaoNova(${i.id_interacao})"></primary-button>
-          ${isAdmin ? `<primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteInteracaoNova(${i.id_interacao})"></primary-button>` : ""}
+          <primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteInteracaoNova(${i.id_interacao})"></primary-button>
         </div>
       </td>
     </tr>`;
@@ -1129,19 +1129,6 @@ async function addInteracaoNova() {
   const obs = document.getElementById("observacoes").value;
   const dataInteracao = document.getElementById("dataInteracao").value;
   const idDoador = document.getElementById("idDoadorInteracao").value || "";
-
-  if (!idDoador) {
-    return Swal.fire({
-      icon: "error",
-      title: "Informe o ID do Doador!",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
 
   if (!tipo) {
     return Swal.fire({
@@ -1169,27 +1156,29 @@ async function addInteracaoNova() {
     });
   }
 
-  const { data: doador, error: doadorError } = await supabaseClient
-    .from("doador_novo")
-    .select("id_doador")
-    .eq("id_doador", idDoador)
-    .single();
+  if (idDoador) {
+    const { data: doador, error: doadorError } = await supabaseClient
+      .from("doador_novo")
+      .select("id_doador")
+      .eq("id_doador", idDoador)
+      .single();
 
-  if (doadorError || !doador) {
-    return Swal.fire({
-      icon: "error",
-      title: "Doador não encontrado! Verifique o ID informado.",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
+    if (doadorError || !doador) {
+      return Swal.fire({
+        icon: "error",
+        title: "Doador não encontrado! Verifique o ID informado.",
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+        toast: true,
+        animation: true,
+      });
+    }
   }
 
   const { error } = await supabaseClient.from("interacao_nova").insert({
-    id_doador: parseInt(idDoador),
+    id_doador: idDoador ? parseInt(idDoador) : null,
     id_usuario: currentUser.id,
     tipo_interacao: tipo,
     observacoes: obs,
@@ -1356,19 +1345,6 @@ async function salvarEdicaoInteracao() {
 }
 
 function deleteInteracaoNova(id) {
-  if (!isAdmin) {
-    return Swal.fire({
-      icon: "error",
-      title: "Somente admins podem deletar interações",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
   Swal.fire({
     title: "Tem certeza?",
     text: "Essa ação não pode ser desfeita!",

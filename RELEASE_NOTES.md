@@ -4,12 +4,14 @@ Histórico de mudanças do projeto, organizado por commit/entrega. Formato inspi
 
 
 
-## 2026-09-20 — Atalho de teclado (Enter) e favicon
+## 2026-09-20 — Atalho de teclado (Enter), favicon e padronização de exclusão
 ### Adicionado
 - Tecla Enter agora funciona como atalho pro botão "Entrar" na tela de login (campos de e-mail e senha) e pro botão "Salvar" nos modais de criação/edição (Doador, Doação, Interação); dentro de uma textarea o Enter continua quebrando linha normalmente, sem disparar o salvar.
 - Favicon do sistema (ícone da aba do navegador), usando os arquivos gerados pelo favicon.io (`img/favicon_io/`): `.ico`, PNGs 16x16/32x32, ícone para Apple/iOS e `site.webmanifest`.
+- Linha "Adicione dados à tabela" quando as tabelas de Doadores, Doações ou Interações estão vazias, em vez de mostrar só o cabeçalho sem nenhuma linha.
 ### Corrigido
 - Caminhos dos ícones dentro do `site.webmanifest` estavam absolutos (`/android-chrome-...png`), apontando pra raiz do site em vez da pasta `img/favicon_io/`; corrigido para caminhos relativos.
+- Exclusão de Interação exigia usuário admin, mas exclusão de Doador e Doação não — padronizado: agora qualquer usuário logado pode excluir os 3 (pendência registrada em 2026-09-19 resolvida).
 
 ## 2026-09-19 — Auditoria geral antes da apresentação + correções
 ### Adicionado
