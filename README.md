@@ -1,4 +1,39 @@
-SIte: https://isabelledutrax.github.io/sistema-mvp-ong-fenix/
+# Fênix Conecta — versão local (offline)
+
+Programa de computador (Electron) para gestão de doações da ONG Fênix. Os dados ficam **só na máquina** do cliente, em um banco SQLite **criptografado** (esquema SQLCipher v4). Não há servidor nem Supabase.
+
+> Projeto derivado do MVP web [sistema-mvp-ong-fenix](https://github.com/IsabelleDutrax/sistema-mvp-ong-fenix). O plano de fases está em [PLANO.md](PLANO.md).
+
+## Como rodar (desenvolvimento)
+
+```bash
+npm install
+npm start      # abre o programa
+npm test       # testes da camada de dados
+```
+
+- Dados: `%APPDATA%\FenixConecta\dadosenix.db` (cifrado).
+- Chave do banco: `%APPDATA%\FenixConecta\chave.bin`, protegida pelo DPAPI do Windows.
+- Para testar sem tocar nos dados normais: defina `FENIX_PASTA_DADOS=<pasta>` antes de `npm start`.
+- Login (fase 2, **provisório**): qualquer e-mail e senha entram como administrador. O login real chega na fase 3. **Não use dados reais antes da fase 3.**
+
+## Estrutura nova
+
+```
+electron/main.js        janela do programa (contextIsolation, sandbox)
+electron/preload.js     expõe window.dados (listar, obter, inserir, atualizar, excluir)
+electron/ipc-dados.js   canais IPC -> camada de dados
+electron/chave.js       gera/guarda a chave do banco (safeStorage)
+src/dados/banco.js      abre o SQLite cifrado e aplica migrações
+src/dados/migracoes.js  migrações versionadas
+src/dados/repositorio.js CRUD com lista branca de tabelas/colunas
+test/                   testes (node --test)
+```
+
+---
+
+## README original do MVP web (referência)
+
 💰 **MVP Doações - Sistema de Gestão de Doações**
 =================================================
 

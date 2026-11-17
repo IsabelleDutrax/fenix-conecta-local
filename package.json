@@ -1,11 +1,21 @@
 {
-  "name": "sistema-mvp-ong-cru",
+  "name": "fenix-conecta-local",
+  "productName": "Fenix Conecta",
+  "version": "0.2.0",
+  "description": "Gestão de doações da ONG Fênix — versão local (offline) com banco criptografado.",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/**/*.test.js\"",
     "build:css": "sass scss/main.scss:style.css --no-source-map --style=expanded",
     "watch:css": "sass --watch scss/main.scss:style.css --no-source-map --style=expanded"
   },
   "devDependencies": {
+    "electron": "45.3.3",
     "sass": "1.77.8"
+  },
+  "dependencies": {
+    "better-sqlite3-multiple-ciphers": "13.2.0"
   }
 }
