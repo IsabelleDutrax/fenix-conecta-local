@@ -16,7 +16,7 @@ npm test       # testes da camada de dados
 - Chave do banco: `%APPDATA%\FenixConecta\chave.bin`, protegida pelo DPAPI do Windows.
 - Para testar sem tocar nos dados normais: defina `FENIX_PASTA_DADOS=<pasta>` antes de `npm start`.
 - Primeiro uso: a tela de **primeiro acesso** cria o administrador e mostra a **chave de recuperação** (imprimir e guardar). Sem `chave.bin` (ex.: Windows reinstalado), o programa pede essa chave.
-- Usuários: senha com hash scrypt; níveis 99 (administrador) e 1 (usuário comum). O administrador gerencia usuários (menu **Usuários**) e pode rever a chave com a própria senha. 5 senhas erradas seguidas bloqueiam o login por 30 s.
+- Usuários: senha com hash scrypt; níveis 99 (administrador) e 1 (usuário comum). O usuário comum cadastra e edita; só o administrador exclui registros, gerencia usuários (menu **Usuários**) e pode rever a chave com a própria senha. 5 senhas erradas seguidas bloqueiam o login por 30 s.
 
 ## Estrutura nova
 

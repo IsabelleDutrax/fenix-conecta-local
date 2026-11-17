@@ -64,7 +64,7 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 
 1. ~~Nome do repositório~~: resolvido em 17/11/2026 — `IsabelleDutrax/fenix-conecta-local` (público).
 2. ~~Histórico herdado~~: resolvido em 17/11/2026 — histórico reescrito sem chaves, URLs do Supabase, e-mail pessoal e senha de teste. **Ação pendente da responsável:** revogar a chave no painel do Supabase (o repositório original ainda a expõe).
-3. **Permissões do usuário comum**: hoje o usuário comum faz o mesmo CRUD que o administrador (igual ao sistema web). Só o administrador gerencia usuários e vê a chave de recuperação. Validar com o cliente se o comum pode excluir registros.
+3. ~~Permissões do usuário comum~~: resolvido em 17/11/2026 — o usuário comum cadastra e edita; **só o administrador exclui** doadores, doações e interações (bloqueado também no processo principal). Gestão de usuários e chave de recuperação: só administrador.
 4. **Valor monetário** armazenado como `REAL` (paridade com o sistema atual). Alternativa mais precisa: centavos em `INTEGER` — avaliar na fase 5 (Excel).
 5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação.
 

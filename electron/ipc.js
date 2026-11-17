@@ -1,7 +1,7 @@
 // Canais IPC entre a tela e o processo principal.
 // Regras de segurança (todas aplicadas aqui, no processo principal, nunca na tela):
 // - só aceita chamadas da página local (file://);
-// - dados e usuários exigem sessão aberta; gestão de usuários exige administrador;
+// - dados e usuários exigem sessão aberta; gestão de usuários e exclusões exigem administrador;
 // - id_usuario das interações vem da sessão, não da tela.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -200,6 +200,9 @@ function registrarCanais() {
       if (!origemValida(evento)) return falha(erro("Origem não autorizada.", "ORIGEM"));
       try {
         exigirSessao();
+        if (op === "excluir" && !sessao.admin) {
+          throw erro("Apenas administradores podem excluir registros.", "SEM_PERMISSAO");
+        }
         if (tabela === "interacao_nova" && (op === "inserir" || op === "atualizar")) {
           const ultimo = args.length - 1;
           const registro = { ...(args[ultimo] || {}) };
