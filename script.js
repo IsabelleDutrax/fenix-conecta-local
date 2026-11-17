@@ -1,8 +1,17 @@
-// 🔑 Config Supabase
-const SUPABASE_URL = "https://PROJETO_REMOVIDO.supabase.co";
-const SUPABASE_KEY = "CHAVE_REMOVIDA";
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Dados locais: window.dados é exposto pelo electron/preload.js (banco SQLite criptografado).
+// Cada função retorna { data, error }, no mesmo formato usado antes com o Supabase.
+// Uso: dados.listar(tabela), dados.obter(tabela, id), dados.inserir(tabela, registro),
+//      dados.atualizar(tabela, id, alteracoes), dados.excluir(tabela, id).
+
+// Escapa texto digitado pelo usuário antes de inserir no HTML (evita injeção de código).
+function esc(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 let currentUser = null;
 let currentDoadorId = null;
@@ -28,24 +37,16 @@ function showSystem() {
 // LOGIN
 // --------------
 
-//Email: admin@exemplo.invalid
-//Senha: (removida)
-
-//Email: usuario@exemplo.invalid
-//Senha: (removida)
-
 async function signIn() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (error) {
+  // PROVISÓRIO (fase 2): login local ainda não existe. Qualquer e-mail + senha entra
+  // como administrador. A fase 3 cria a tabela de usuários com senha em hash.
+  if (!email || !password) {
     return Swal.fire({
       icon: "error",
-      title: "Erro: " + error.message,
+      title: "Informe e-mail e senha",
       position: "top-end",
       showConfirmButton: false,
       timer: 1500,
@@ -57,17 +58,11 @@ async function signIn() {
 
   showSystem();
 
-  currentUser = data.user;
+  currentUser = { id: "local", email };
   document.getElementById("userEmailDisplay").textContent = currentUser.email;
 
-  // Checa se o usuário é admin
-  const { data: doadorData } = await supabaseClient
-    .from("doador")
-    .select("nivel_acesso")
-    .eq("id_usuario", currentUser.id)
-    .single();
-
-  isAdmin = doadorData && doadorData.nivel_acesso === 99;
+  // PROVISÓRIO (fase 2): nível de acesso virá da tabela de usuários na fase 3.
+  isAdmin = true;
 
   Swal.fire({
     icon: "success",
@@ -88,7 +83,6 @@ async function signIn() {
 }
 
 async function signOut() {
-  await supabaseClient.auth.signOut();
   showLogin();
   fecharMenuMobile();
 
@@ -270,7 +264,7 @@ function fecharModal(modalId, formId) {
 // DOADOR NOVO
 // =========================
 async function loadDoadores() {
-  const { data, error } = await supabaseClient.from("doador_novo").select("*");
+  const { data, error } = await dados.listar("doador_novo");
   if (error) return console.error(error);
 
   doadoresData = data;
@@ -291,15 +285,15 @@ function renderDoadorTable() {
     ).length;
 
     tbody.innerHTML += `<tr>
-      <td>${d.nome}</td>
-      <td>${d.email || ""}</td>
-      <td>${d.telefone || ""}</td>
+      <td>${esc(d.nome)}</td>
+      <td>${esc(d.email)}</td>
+      <td>${esc(d.telefone)}</td>
       <td class="text-center">
         <button type="button" class="btn btn-link p-0" title="Ver doações deste doador" onclick="abrirDoacoesDoador(${d.id_doador})">${totalDoacoes}</button>
       </td>
       <td class="actions-td">
         <div class="actions-content">
-          ${d.email ? `<a href="mailto:${d.email}" class="btn btn-outline-primary" title="Enviar e-mail para ${d.nome}"><i class="fi fi-rr-envelope"></i></a>` : ""}
+          ${d.email ? `<a href="mailto:${esc(d.email)}" class="btn btn-outline-primary" title="Enviar e-mail para ${esc(d.nome)}"><i class="fi fi-rr-envelope"></i></a>` : ""}
           <button type="button" class="btn btn-outline-secondary" title="Copiar mensagem de lembrete" onclick="copiarMensagemLembrete(${d.id_doador})"><i class="fi fi-rr-clipboard"></i></button>
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateDoador(${d.id_doador})"></primary-button>
           <primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteDoador(${d.id_doador})"></primary-button>
@@ -433,7 +427,7 @@ function apenasDigitos(texto) {
 
 function nomeDoador(idDoador) {
   const doador = doadoresData.find((d) => d.id_doador === idDoador);
-  return doador ? `${doador.nome} (${doador.email || "sem email"})` : "-";
+  return doador ? esc(`${doador.nome} (${doador.email || "sem email"})`) : "-";
 }
 
 // Selects de doador com campo de busca (biblioteca Choices.js)
@@ -477,6 +471,7 @@ function preencherDropdownDoadores() {
 }
 
 function badgeStatus(status) {
+  status = status ? esc(status) : status;
   const cores = {
     Pago: "bg-success",
     Pendente: "bg-warning",
@@ -590,9 +585,13 @@ async function addDoador() {
     });
   }
 
-  const { error } = await supabaseClient
-    .from("doador_novo")
-    .insert({ nome, telefone, cpf_cnpj: cpf, endereco, email });
+  const { error } = await dados.inserir("doador_novo", {
+    nome,
+    telefone,
+    cpf_cnpj: cpf,
+    endereco,
+    email,
+  });
   if (error) {
     return Swal.fire({
       icon: "error",
@@ -703,10 +702,13 @@ async function salvarEdicaoDoador() {
     });
   }
 
-  const { error } = await supabaseClient
-    .from("doador_novo")
-    .update({ nome, telefone, cpf_cnpj: cpf, endereco, email })
-    .eq("id_doador", id);
+  const { error } = await dados.atualizar("doador_novo", id, {
+    nome,
+    telefone,
+    cpf_cnpj: cpf,
+    endereco,
+    email,
+  });
   if (error) {
     return Swal.fire({
       icon: "error",
@@ -768,10 +770,7 @@ function deleteDoador(id) {
   }).then(async (result) => {
     if (!result.isConfirmed) return;
 
-    const { error } = await supabaseClient
-      .from("doador_novo")
-      .delete()
-      .eq("id_doador", id);
+    const { error } = await dados.excluir("doador_novo", id);
     if (error) {
       return Swal.fire({
         icon: "error",
@@ -803,7 +802,7 @@ function deleteDoador(id) {
 //  DOAÇÃO NOVA
 // =========================
 async function loadDoacoes() {
-  const { data, error } = await supabaseClient.from("doacao_nova").select("*");
+  const { data, error } = await dados.listar("doacao_nova");
   if (error) return console.error(error);
 
   doacoesData = data;
@@ -876,11 +875,10 @@ async function addDoacao() {
     });
   }
 
-  const { data: doador, error: doadorError } = await supabaseClient
-    .from("doador_novo")
-    .select("id_doador")
-    .eq("id_doador", idDoador)
-    .single();
+  const { data: doador, error: doadorError } = await dados.obter(
+    "doador_novo",
+    idDoador,
+  );
 
   if (doadorError || !doador) {
     return Swal.fire({
@@ -895,7 +893,7 @@ async function addDoacao() {
     });
   }
 
-  const { error } = await supabaseClient.from("doacao_nova").insert({
+  const { error } = await dados.inserir("doacao_nova", {
     id_doador: parseInt(idDoador),
     valor: parseFloat(valor),
     data_doacao: dataDoacao,
@@ -1007,16 +1005,13 @@ async function salvarEdicaoDoacao() {
     });
   }
 
-  const { error } = await supabaseClient
-    .from("doacao_nova")
-    .update({
-      id_doador: parseInt(idDoador),
-      valor: parseFloat(valor),
-      data_doacao: dataDoacao,
-      forma_pagamento: forma,
-      status,
-    })
-    .eq("id_doacao", id);
+  const { error } = await dados.atualizar("doacao_nova", id, {
+    id_doador: parseInt(idDoador),
+    valor: parseFloat(valor),
+    data_doacao: dataDoacao,
+    forma_pagamento: forma,
+    status,
+  });
   if (error) {
     return Swal.fire({
       icon: "error",
@@ -1061,10 +1056,7 @@ function deleteDoacao(id) {
   }).then(async (result) => {
     if (!result.isConfirmed) return;
 
-    const { error } = await supabaseClient
-      .from("doacao_nova")
-      .delete()
-      .eq("id_doacao", id);
+    const { error } = await dados.excluir("doacao_nova", id);
     if (error) {
       return Swal.fire({
         icon: "error",
@@ -1096,10 +1088,7 @@ function deleteDoacao(id) {
 // INTERAÇÃO NOVA (ong e doador)
 // =========================
 async function loadInteracoes() {
-  let query = supabaseClient.from("interacao_nova").select("*");
-  // if (!isAdmin) query = query.eq("id_doador", currentDoadorId);
-
-  const { data, error } = await query;
+  const { data, error } = await dados.listar("interacao_nova");
   if (error) return console.error(error);
 
   interacoesData = data;
@@ -1111,8 +1100,8 @@ async function loadInteracoes() {
   data.forEach((i) => {
     tbody.innerHTML += `<tr>
       <td>${nomeDoador(i.id_doador)}</td>
-      <td>${i.tipo_interacao}</td>
-      <td>${i.observacoes || ""}</td>
+      <td>${esc(i.tipo_interacao)}</td>
+      <td>${esc(i.observacoes)}</td>
       <td>${formatarData(i.data_interacao)}</td>
       <td class="actions-td">
         <div class="actions-content">
@@ -1157,11 +1146,10 @@ async function addInteracaoNova() {
   }
 
   if (idDoador) {
-    const { data: doador, error: doadorError } = await supabaseClient
-      .from("doador_novo")
-      .select("id_doador")
-      .eq("id_doador", idDoador)
-      .single();
+    const { data: doador, error: doadorError } = await dados.obter(
+      "doador_novo",
+      idDoador,
+    );
 
     if (doadorError || !doador) {
       return Swal.fire({
@@ -1177,7 +1165,7 @@ async function addInteracaoNova() {
     }
   }
 
-  const { error } = await supabaseClient.from("interacao_nova").insert({
+  const { error } = await dados.inserir("interacao_nova", {
     id_doador: idDoador ? parseInt(idDoador) : null,
     id_usuario: currentUser.id,
     tipo_interacao: tipo,
@@ -1288,11 +1276,10 @@ async function salvarEdicaoInteracao() {
     });
   }
 
-  const { data: doador, error: doadorError } = await supabaseClient
-    .from("doador_novo")
-    .select("id_doador")
-    .eq("id_doador", idDoador)
-    .single();
+  const { data: doador, error: doadorError } = await dados.obter(
+    "doador_novo",
+    idDoador,
+  );
 
   if (doadorError || !doador) {
     return Swal.fire({
@@ -1307,15 +1294,12 @@ async function salvarEdicaoInteracao() {
     });
   }
 
-  const { error } = await supabaseClient
-    .from("interacao_nova")
-    .update({
-      id_doador: parseInt(idDoador),
-      tipo_interacao: tipo,
-      observacoes: obs,
-      data_interacao: dataInteracao,
-    })
-    .eq("id_interacao", id);
+  const { error } = await dados.atualizar("interacao_nova", id, {
+    id_doador: parseInt(idDoador),
+    tipo_interacao: tipo,
+    observacoes: obs,
+    data_interacao: dataInteracao,
+  });
   if (error) {
     return Swal.fire({
       icon: "error",
@@ -1360,10 +1344,7 @@ function deleteInteracaoNova(id) {
   }).then(async (result) => {
     if (!result.isConfirmed) return;
 
-    const { error } = await supabaseClient
-      .from("interacao_nova")
-      .delete()
-      .eq("id_interacao", id);
+    const { error } = await dados.excluir("interacao_nova", id);
     if (error) {
       return Swal.fire({
         icon: "error",

@@ -4,7 +4,13 @@ const { app, BrowserWindow, shell } = require("electron");
 const { registrarCanaisDados, fecharDados } = require("./ipc-dados");
 
 // Pasta do programa no %APPDATA% (sem acento, para evitar problemas de caminho).
-app.setPath("userData", path.join(app.getPath("appData"), "FenixConecta"));
+// Em desenvolvimento/testes, FENIX_PASTA_DADOS isola os dados (ignorado no instalador).
+app.setPath(
+  "userData",
+  process.env.FENIX_PASTA_DADOS && !app.isPackaged
+    ? path.resolve(process.env.FENIX_PASTA_DADOS)
+    : path.join(app.getPath("appData"), "FenixConecta"),
+);
 
 // Uma única instância: abrir duas vezes o mesmo banco pode corromper dados.
 if (!app.requestSingleInstanceLock()) {
