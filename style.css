@@ -351,6 +351,81 @@ button.btn-block:hover {
     max-width: 100%;
   }
 }
+.login-card-largo {
+  max-width: 520px;
+}
+
+.painel-texto {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.chave-recuperacao {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  text-align: center;
+  word-break: break-all;
+  background: #fff8f3;
+  border: 2px dashed #FF5722;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  user-select: all;
+}
+
+.chave-acoes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.chave-acoes > * {
+  flex: 1;
+}
+
+.confirmacao-chave {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.confirmacao-chave input {
+  margin-top: 4px;
+}
+
+#folha-impressao {
+  display: none;
+}
+
+@media print {
+  body > *:not(#folha-impressao) {
+    display: none !important;
+  }
+  #folha-impressao {
+    display: block !important;
+    font-family: Arial, sans-serif;
+    padding: 24px;
+  }
+  #folha-impressao .chave-recuperacao {
+    font-size: 1.3rem;
+  }
+}
+button.btn-block:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .app-shell {
   display: flex;
   height: 100vh;

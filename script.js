@@ -14,7 +14,6 @@ function esc(valor) {
 }
 
 let currentUser = null;
-let currentDoadorId = null;
 let isAdmin = false;
 
 // Cache local dos últimos dados carregados, usado pelo Dashboard
@@ -33,83 +32,352 @@ function showSystem() {
   document.getElementById("app-shell").classList.remove("hidden");
 }
 
-// --------------
-// LOGIN
-// --------------
-
-async function signIn() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  // PROVISÓRIO (fase 2): login local ainda não existe. Qualquer e-mail + senha entra
-  // como administrador. A fase 3 cria a tabela de usuários com senha em hash.
-  if (!email || !password) {
-    return Swal.fire({
-      icon: "error",
-      title: "Informe e-mail e senha",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  showSystem();
-
-  currentUser = { id: "local", email };
-  document.getElementById("userEmailDisplay").textContent = currentUser.email;
-
-  // PROVISÓRIO (fase 2): nível de acesso virá da tabela de usuários na fase 3.
-  isAdmin = true;
-
-  Swal.fire({
-    icon: "success",
-    title: "Successo!",
-    text: `Login OK!`,
-    // text: `Login OK! Admin:${isAdmin}`,
-    position: "top-right",
+// Avisos curtos no canto da tela (mesmo padrão visual do sistema)
+function aviso(icon, title, text) {
+  return Swal.fire({
+    icon,
+    title,
+    text,
+    position: "top-end",
     showConfirmButton: false,
-    timer: 1500,
+    timer: icon === "error" ? 2500 : 1500,
     timerProgressBar: true,
     toast: true,
-
     animation: true,
   });
+}
+
+// --------------
+// INICIALIZAÇÃO, LOGIN E PRIMEIRO ACESSO
+// Toda a regra de acesso fica no processo principal (electron/ipc.js); a tela só mostra.
+// --------------
+
+const PAINEIS_LOGIN = [
+  "painel-carregando",
+  "painel-primeiro-acesso",
+  "painel-chave",
+  "painel-recuperar",
+  "auth-section",
+];
+
+function mostrarPainelLogin(id) {
+  PAINEIS_LOGIN.forEach((p) =>
+    document.getElementById(p).classList.toggle("hidden", p !== id),
+  );
+  // Telas com mais texto usam um cartão mais largo
+  document
+    .getElementById("login-card")
+    .classList.toggle("login-card-largo", id !== "auth-section");
+  showLogin();
+  const primeiroCampo = document.querySelector(`#${id} input`);
+  if (primeiroCampo) primeiroCampo.focus();
+}
+
+async function iniciarSistema() {
+  const { data, error } = await sessao.estado();
+  if (error) {
+    mostrarPainelLogin("painel-carregando");
+    document.querySelector("#painel-carregando .painel-texto").textContent =
+      "Não foi possível abrir os dados: " + error.message;
+    return;
+  }
+  if (data.etapa === "recuperar") return mostrarPainelLogin("painel-recuperar");
+  if (data.etapa === "primeiro_acesso")
+    return mostrarPainelLogin("painel-primeiro-acesso");
+  if (data.etapa === "logado") return entrarNoSistema(data.usuario);
+  mostrarPainelLogin("auth-section");
+}
+
+async function signIn() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) return aviso("error", "Informe e-mail e senha");
+
+  const { data, error } = await sessao.entrar(email, password);
+  if (error) return aviso("error", error.message);
+
+  document.getElementById("password").value = "";
+  toggleSenhaBtn();
+  entrarNoSistema(data);
+  aviso("success", "Bem-vindo(a)!", data.nome);
+}
+
+// Abre o sistema para o usuário autenticado e ajusta o que ele pode ver.
+function entrarNoSistema(usuario) {
+  currentUser = usuario;
+  isAdmin = usuario.admin === true;
+
+  document.getElementById("userEmailDisplay").textContent = usuario.email;
+  document.getElementById("userNivelDisplay").textContent = isAdmin
+    ? "Administrador"
+    : "Usuário comum";
+  document
+    .querySelectorAll(".somente-admin")
+    .forEach((el) => el.classList.toggle("hidden", !isAdmin));
+
+  showSystem();
+  showPage("dashboard");
   if (!choicesDoador) initSelectsBuscaDoador();
   loadData();
-  //   toggleSections(true);
 }
 
 async function signOut() {
-  showLogin();
+  await sessao.sair();
   fecharMenuMobile();
 
   currentUser = null;
-  //   toggleSections(false);
-  // alert("Saiu!");
-  Swal.fire({
-    icon: "success",
-    title: "Desconectado com sucesso!",
-    position: "top-right",
-    showConfirmButton: false,
-    timer: 1500,
-    timerProgressBar: true,
-    toast: true,
+  isAdmin = false;
+  doadoresData = [];
+  doacoesData = [];
+  interacoesData = [];
+  mostrarPainelLogin("auth-section");
+  aviso("success", "Desconectado com sucesso!");
+}
 
-    animation: true,
+// Se a sessão terminou (ex.: programa reaberto), volta ao login.
+function tratarSessaoEncerrada(error) {
+  if (error && error.code === "SEM_SESSAO") {
+    currentUser = null;
+    mostrarPainelLogin("auth-section");
+    aviso("error", error.message);
+    return true;
+  }
+  return false;
+}
+
+let chaveExibida = "";
+
+async function criarPrimeiroAdmin() {
+  const nome = document.getElementById("paNome").value.trim();
+  const email = document.getElementById("paEmail").value.trim();
+  const senha = document.getElementById("paSenha").value;
+  const senha2 = document.getElementById("paSenha2").value;
+
+  if (!nome) return aviso("error", "Informe o nome");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return aviso("error", "E-mail inválido");
+  if (senha.length < 8)
+    return aviso("error", "A senha deve ter pelo menos 8 caracteres");
+  if (senha !== senha2) return aviso("error", "As senhas não conferem");
+
+  const { data, error } = await sessao.primeiroAcesso({ nome, email, senha });
+  if (error) return aviso("error", error.message);
+
+  ["paSenha", "paSenha2"].forEach((id) => (document.getElementById(id).value = ""));
+  currentUser = data.usuario;
+  mostrarChave(data.chaveRecuperacao);
+  mostrarPainelLogin("painel-chave");
+}
+
+function mostrarChave(chave) {
+  chaveExibida = chave;
+  document.getElementById("chaveRecuperacaoTexto").textContent = chave;
+  document.getElementById("chaveGuardada").checked = false;
+  liberarContinuar(false);
+}
+
+function liberarContinuar(liberar) {
+  const btn = document.getElementById("btnConcluirChave");
+  if (btn) btn.disabled = !liberar;
+}
+
+function imprimirChave(chave = chaveExibida) {
+  document.getElementById("chaveImpressao").textContent = chave;
+  document.getElementById("dataImpressao").textContent =
+    new Date().toLocaleDateString("pt-BR");
+  window.print();
+}
+
+function copiarChave(chave = chaveExibida) {
+  navigator.clipboard
+    .writeText(chave)
+    .then(() => aviso("success", "Chave copiada!"));
+}
+
+function concluirPrimeiroAcesso() {
+  if (!document.getElementById("chaveGuardada").checked) {
+    return aviso("error", "Confirme que guardou a chave de recuperação");
+  }
+  chaveExibida = "";
+  document.getElementById("chaveRecuperacaoTexto").textContent = "";
+  entrarNoSistema(currentUser);
+}
+
+async function recuperarComChave() {
+  const chave = document.getElementById("chaveDigitada").value;
+  const { data, error } = await sessao.recuperar(chave);
+  if (error) return aviso("error", error.message);
+  document.getElementById("chaveDigitada").value = "";
+  aviso("success", "Dados abertos com sucesso!");
+  if (data.etapa === "primeiro_acesso")
+    return mostrarPainelLogin("painel-primeiro-acesso");
+  mostrarPainelLogin("auth-section");
+}
+
+// Formulário em janela (SweetAlert2) com campos de senha; devolve os valores ou null.
+async function pedirSenhas(titulo, campos, textoConfirmar = "Salvar") {
+  const html = campos
+    .map(
+      (c, i) => `<label class="form-label d-block text-start mt-2" for="swalCampo${i}">${esc(c)}</label>
+        <input type="password" id="swalCampo${i}" class="form-control" autocomplete="off">`,
+    )
+    .join("");
+  const { value, isConfirmed } = await Swal.fire({
+    title: titulo,
+    html,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: textoConfirmar,
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+    didOpen: () => document.getElementById("swalCampo0").focus(),
+    preConfirm: () => campos.map((_, i) => document.getElementById(`swalCampo${i}`).value),
+  });
+  return isConfirmed ? value : null;
+}
+
+async function alterarMinhaSenha() {
+  fecharMenuMobile();
+  const valores = await pedirSenhas("Alterar minha senha", [
+    "Senha atual",
+    "Nova senha (mínimo 8 caracteres)",
+    "Repita a nova senha",
+  ]);
+  if (!valores) return;
+  const [atual, nova, nova2] = valores;
+  if (nova !== nova2) return aviso("error", "As novas senhas não conferem");
+  const { error } = await sessao.alterarMinhaSenha(atual, nova);
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  aviso("success", "Senha alterada!");
+}
+
+async function verChaveRecuperacao() {
+  fecharMenuMobile();
+  const valores = await pedirSenhas(
+    "Confirme sua senha",
+    ["Sua senha de administrador"],
+    "Ver chave",
+  );
+  if (!valores) return;
+  const { data: chave, error } = await sessao.verChaveRecuperacao(valores[0]);
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+
+  const resultado = await Swal.fire({
+    title: "Chave de recuperação",
+    html: `<p class="text-start">Guarde em local seguro, longe do computador.</p>
+      <div class="chave-recuperacao">${esc(chave)}</div>`,
+    showDenyButton: true,
+    confirmButtonText: "Fechar",
+    denyButtonText: "Imprimir",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-ghost me-2", denyButton: "btn btn-orange" },
+  });
+  if (resultado.isDenied) imprimirChave(chave);
+}
+
+// --------------
+// USUÁRIOS (somente administrador; o processo principal também confere)
+// --------------
+let usuariosData = [];
+
+async function loadUsuarios() {
+  if (!isAdmin) return;
+  const { data, error } = await usuarios.listar();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  usuariosData = data;
+
+  const tbody = document.querySelector("#usuarioTable tbody");
+  tbody.innerHTML = data
+    .map(
+      (u) => `<tr>
+        <td>${esc(u.nome)}${currentUser && u.id_usuario === currentUser.id_usuario ? ' <span class="badge bg-secondary">você</span>' : ""}</td>
+        <td>${esc(u.email)}</td>
+        <td>${u.admin ? "Administrador" : "Usuário comum"}</td>
+        <td><span class="badge ${u.ativo ? "bg-success" : "bg-secondary"}">${u.ativo ? "Ativo" : "Desativado"}</span></td>
+        <td>${u.ultimo_login ? formatarDataHora(u.ultimo_login) : "-"}</td>
+        <td class="actions-td">
+          <div class="actions-content">
+            <button type="button" class="btn btn-outline-secondary" title="Editar" onclick="abrirModalUsuario(${u.id_usuario})"><i class="fi fi-rr-pencil"></i></button>
+            <button type="button" class="btn btn-outline-secondary" title="Redefinir senha" onclick="redefinirSenhaUsuario(${u.id_usuario})"><i class="fi fi-rr-key"></i></button>
+          </div>
+        </td>
+      </tr>`,
+    )
+    .join("");
+}
+
+function formatarDataHora(iso) {
+  return new Date(iso).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
   });
 }
 
-// function toggleSections(show) {
-//   document.getElementById("login-container").classList.toggle("hidden", show);
-//   document.getElementById("app-shell").classList.toggle("hidden", !show);
-//   if (show && currentUser) {
-//     document.getElementById("userEmailDisplay").textContent = currentUser.email;
-//     showPage("dashboard");
-//   }
-// }
+function abrirModalUsuario(id) {
+  const u = id ? usuariosData.find((x) => x.id_usuario === id) : null;
+  document.getElementById("formUsuario").reset();
+  document.getElementById("modalUsuarioLabel").textContent = u
+    ? "Editar Usuário"
+    : "Novo Usuário";
+  document.getElementById("usuarioId").value = u ? u.id_usuario : "";
+  document.getElementById("usuarioNome").value = u ? u.nome : "";
+  document.getElementById("usuarioEmail").value = u ? u.email : "";
+  document.getElementById("usuarioNivel").value = u ? String(u.nivel_acesso) : "1";
+  document.getElementById("usuarioAtivo").checked = u ? u.ativo : true;
+  // Senha só no cadastro; na edição usa o botão "Redefinir senha"
+  document.getElementById("grupoUsuarioSenha").classList.toggle("hidden", !!u);
+  document.getElementById("grupoUsuarioAtivo").classList.toggle("hidden", !u);
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("modalUsuario")).show();
+}
+
+async function salvarUsuario() {
+  const id = document.getElementById("usuarioId").value;
+  const nome = document.getElementById("usuarioNome").value.trim();
+  const email = document.getElementById("usuarioEmail").value.trim();
+  const nivel_acesso = Number(document.getElementById("usuarioNivel").value);
+  const senha = document.getElementById("usuarioSenha").value;
+  const ativo = document.getElementById("usuarioAtivo").checked;
+
+  if (!nome) return aviso("error", "Informe o nome");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return aviso("error", "E-mail inválido");
+  if (!id && senha.length < 8)
+    return aviso("error", "A senha deve ter pelo menos 8 caracteres");
+
+  const { data, error } = id
+    ? await usuarios.atualizar(Number(id), { nome, email, nivel_acesso, ativo })
+    : await usuarios.criar({ nome, email, senha, nivel_acesso });
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+
+  fecharModal("modalUsuario", "formUsuario");
+  aviso("success", "Informações salvas!");
+
+  // Se o admin mudou o próprio nível, a tela se ajusta
+  if (currentUser && data.id_usuario === currentUser.id_usuario) {
+    const { data: atual } = await sessao.atual();
+    if (atual) {
+      entrarNoSistema(atual);
+      if (!atual.admin) return;
+    }
+    showPage("usuarios");
+  }
+  loadUsuarios();
+}
+
+async function redefinirSenhaUsuario(id) {
+  const u = usuariosData.find((x) => x.id_usuario === id);
+  if (!u) return;
+  const valores = await pedirSenhas(`Nova senha de ${u.nome}`, [
+    "Nova senha (mínimo 8 caracteres)",
+    "Repita a nova senha",
+  ]);
+  if (!valores) return;
+  if (valores[0] !== valores[1]) return aviso("error", "As senhas não conferem");
+  const { error } = await usuarios.redefinirSenha(id, valores[0]);
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  aviso("success", "Senha redefinida!");
+}
 
 // Páginas do app logado (sidebar) e a página atualmente visível
 const PAGES = {
@@ -117,9 +385,11 @@ const PAGES = {
   doador: "doador-section",
   doacao: "doacao-section",
   interacao: "interacao-section",
+  usuarios: "usuarios-section",
 };
 
 function showPage(page) {
+  if (page === "usuarios" && !isAdmin) page = "dashboard";
   Object.values(PAGES).forEach((id) =>
     document.getElementById(id).classList.add("hidden"),
   );
@@ -134,6 +404,7 @@ function showPage(page) {
   if (activeLink) activeLink.classList.add("active");
 
   if (page === "dashboard") renderDashboard();
+  if (page === "usuarios") loadUsuarios();
 
   fecharMenuMobile();
 }
@@ -1167,7 +1438,7 @@ async function addInteracaoNova() {
 
   const { error } = await dados.inserir("interacao_nova", {
     id_doador: idDoador ? parseInt(idDoador) : null,
-    id_usuario: currentUser.id,
+    // id_usuario é preenchido pelo processo principal a partir da sessão
     tipo_interacao: tipo,
     observacoes: obs,
     data_interacao: dataInteracao,
@@ -1477,9 +1748,12 @@ document.addEventListener("keydown", (e) => {
     return;
   }
 
-  // Login: Enter nos campos de email/senha aciona o botão "Entrar"
-  if (e.target.id === "email" || e.target.id === "password") {
+  // Telas de entrada (login, primeiro acesso, recuperação): Enter aciona o botão do painel
+  const painel = e.target.closest("#login-card .auth-section");
+  if (painel && e.target.tagName === "INPUT" && e.target.type !== "checkbox") {
     e.preventDefault();
-    document.querySelector("#auth-section .btn-block")?.click();
+    painel.querySelector(".btn-block button, button.btn-block")?.click();
   }
 });
+
+iniciarSistema();

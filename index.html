@@ -65,15 +65,84 @@
 </head>
 
 <body>
+  <div id="folha-impressao">
+    <h2>Fênix Conecta — Chave de recuperação</h2>
+    <p>Esta chave abre os dados do sistema se o Windows for reinstalado ou o computador for trocado.</p>
+    <div class="chave-recuperacao" id="chaveImpressao"></div>
+    <p>Gerada em: <span id="dataImpressao"></span></p>
+    <p><strong>Guarde em local seguro, longe do computador. Quem tiver esta chave e o arquivo de dados consegue ler os
+        dados.</strong></p>
+  </div>
   <section id="login-page" class="view">
     <!-- Login e Sair -->
     <div id="login-container" class="login-container">
-      <div class="login-card">
+      <div class="login-card" id="login-card">
         <!-- <img src="img/Logo_fundo_branco.png" alt="Fênix Conecta" class="login-logo"> -->
         <div class="logo-circle"></div>
         <h1>Fênix Conecta</h1>
         <p class="login-subtitle">Sistema de gestão de doações</p>
-        <div id="auth-section" class="section auth-section">
+        <!-- Carregando: aparece enquanto o programa abre o banco -->
+        <div id="painel-carregando" class="section auth-section">
+          <p class="painel-texto text-center">Abrindo os dados...</p>
+        </div>
+
+        <!-- Primeiro acesso: cria o administrador -->
+        <div id="painel-primeiro-acesso" class="section auth-section hidden">
+          <p class="painel-texto"><strong>Primeiro acesso.</strong> Cadastre o administrador do sistema. Ele poderá
+            criar os outros usuários depois.</p>
+          <div class="form-group">
+            <label for="paNome">Nome</label>
+            <input type="text" id="paNome" placeholder="Nome completo" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="paEmail">E-mail (usado para entrar)</label>
+            <input type="email" id="paEmail" placeholder="E-mail" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="paSenha">Senha (mínimo 8 caracteres)</label>
+            <input type="password" id="paSenha" placeholder="Senha" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="paSenha2">Repita a senha</label>
+            <input type="password" id="paSenha2" placeholder="Repita a senha" autocomplete="new-password">
+          </div>
+          <primary-button label="Criar administrador" className="btn-block" data-onclick="criarPrimeiroAdmin()"></primary-button>
+        </div>
+
+        <!-- Chave de recuperação: mostrada uma vez no primeiro acesso (admin pode ver de novo depois) -->
+        <div id="painel-chave" class="section auth-section hidden">
+          <p class="painel-texto"><strong>Imprima e guarde esta chave de recuperação em local seguro</strong> (fora do
+            computador). Sem ela, os dados não podem ser abertos se o Windows for reinstalado ou o computador for
+            trocado.</p>
+          <div class="chave-recuperacao" id="chaveRecuperacaoTexto"></div>
+          <div class="chave-acoes">
+            <primary-button label="Imprimir" icon="fi fi-rr-print" className="btn btn-outline-secondary w-100"
+              data-onclick="imprimirChave()"></primary-button>
+            <primary-button label="Copiar" icon="fi fi-rr-copy" className="btn btn-outline-secondary w-100"
+              data-onclick="copiarChave()"></primary-button>
+          </div>
+          <label class="confirmacao-chave">
+            <input type="checkbox" id="chaveGuardada" onchange="liberarContinuar(this.checked)">
+            <span>Imprimi (ou anotei) a chave e guardei em local seguro.</span>
+          </label>
+          <primary-button label="Continuar" className="btn-block" data-id="btnConcluirChave"
+            data-onclick="concluirPrimeiroAcesso()" disabled></primary-button>
+        </div>
+
+        <!-- Recuperação: chave do Windows ausente ou inválida -->
+        <div id="painel-recuperar" class="section auth-section hidden">
+          <p class="painel-texto"><strong>Os dados estão protegidos.</strong> Este computador não tem a chave para
+            abri-los (por exemplo, após reinstalar o Windows). Digite a <strong>chave de recuperação</strong> impressa no
+            primeiro acesso.</p>
+          <div class="form-group">
+            <label for="chaveDigitada">Chave de recuperação</label>
+            <input type="text" id="chaveDigitada" placeholder="XXXXXXXX-XXXXXXXX-..." autocomplete="off"
+              spellcheck="false">
+          </div>
+          <primary-button label="Abrir dados" className="btn-block" data-onclick="recuperarComChave()"></primary-button>
+        </div>
+
+        <div id="auth-section" class="section auth-section hidden">
           <div class="form-group">
             <input type="email" id="email" placeholder="Email">
           </div>
@@ -124,9 +193,15 @@
             Doações</a></li>
         <li><a class="nav-link" data-page="interacao" onclick="showPage('interacao')"><i class="fi fi-rr-comment"></i>
             Interações</a></li>
+        <li class="somente-admin hidden"><a class="nav-link" data-page="usuarios" onclick="showPage('usuarios')"><i
+              class="fi fi-rr-user-gear"></i> Usuários</a></li>
       </ul>
       <div class="sidebar-footer">
-        <span class="logged-in-text">Logado como <strong id="userEmailDisplay"></strong></span>
+        <span class="logged-in-text">Logado como <strong id="userEmailDisplay"></strong>
+          <small id="userNivelDisplay" class="d-block"></small></span>
+        <a class="nav-link" onclick="alterarMinhaSenha()"><i class="fi fi-rr-key"></i> Alterar minha senha</a>
+        <a class="nav-link somente-admin hidden" onclick="verChaveRecuperacao()"><i class="fi fi-rr-shield-check"></i>
+          Chave de recuperação</a>
         <a class="nav-link" onclick="signOut()"><i class="fi fi-rr-exit"></i> Sair</a>
         <p class="footer-credit">Desenvolvido por Isabelle Dutra — Curso ADS na Uninter, 2026</p>
       </div>
@@ -649,6 +724,75 @@
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th class="th-sortable" onclick="ordenarTabela('interacaoTable', 3, 'data')">Data <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Usuários (somente administrador) -->
+      <div id="usuarios-section" class="app-page section hidden">
+        <h2>Usuários</h2>
+        <p class="text-muted">Pessoas que podem entrar no sistema. Administradores também gerenciam usuários e a chave
+          de recuperação.</p>
+        <div class="d-flex gap-2 mb-3">
+          <primary-button label="Novo Usuário +" className="btn btn-orange" data-onclick="abrirModalUsuario()"></primary-button>
+        </div>
+
+        <div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalUsuarioLabel">Novo Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <form id="formUsuario">
+                  <input type="hidden" id="usuarioId">
+                  <div class="mb-3">
+                    <label for="usuarioNome" class="form-label">Nome</label>
+                    <input type="text" class="form-control" id="usuarioNome" placeholder="Nome">
+                  </div>
+                  <div class="mb-3">
+                    <label for="usuarioEmail" class="form-label">E-mail (usado para entrar)</label>
+                    <input type="email" class="form-control" id="usuarioEmail" placeholder="E-mail">
+                  </div>
+                  <div class="mb-3">
+                    <label for="usuarioNivel" class="form-label">Nível de acesso</label>
+                    <select class="form-select" id="usuarioNivel">
+                      <option value="1">Usuário comum</option>
+                      <option value="99">Administrador</option>
+                    </select>
+                  </div>
+                  <div class="mb-3" id="grupoUsuarioSenha">
+                    <label for="usuarioSenha" class="form-label">Senha inicial (mínimo 8 caracteres)</label>
+                    <input type="password" class="form-control" id="usuarioSenha" placeholder="Senha"
+                      autocomplete="new-password">
+                  </div>
+                  <div class="form-check mb-1 hidden" id="grupoUsuarioAtivo">
+                    <input class="form-check-input" type="checkbox" id="usuarioAtivo">
+                    <label class="form-check-label" for="usuarioAtivo">Ativo (pode entrar no sistema)</label>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <primary-button label="Cancelar" className="btn btn-ghost me-auto" data-bs-dismiss="modal"></primary-button>
+                <primary-button label="Salvar" className="btn btn-orange" data-onclick="salvarUsuario()"></primary-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="usuarioTable">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Nível</th>
+                <th>Situação</th>
+                <th>Último acesso</th>
                 <th>Ações</th>
               </tr>
             </thead>

@@ -15,18 +15,20 @@ npm test       # testes da camada de dados
 - Dados: `%APPDATA%\FenixConecta\dados\fenix.db` (cifrado).
 - Chave do banco: `%APPDATA%\FenixConecta\chave.bin`, protegida pelo DPAPI do Windows.
 - Para testar sem tocar nos dados normais: defina `FENIX_PASTA_DADOS=<pasta>` antes de `npm start`.
-- Login (fase 2, **provisório**): qualquer e-mail e senha entram como administrador. O login real chega na fase 3. **Não use dados reais antes da fase 3.**
+- Primeiro uso: a tela de **primeiro acesso** cria o administrador e mostra a **chave de recuperação** (imprimir e guardar). Sem `chave.bin` (ex.: Windows reinstalado), o programa pede essa chave.
+- Usuários: senha com hash scrypt; níveis 99 (administrador) e 1 (usuário comum). O administrador gerencia usuários (menu **Usuários**) e pode rever a chave com a própria senha. 5 senhas erradas seguidas bloqueiam o login por 30 s.
 
 ## Estrutura nova
 
 ```
 electron/main.js        janela do programa (contextIsolation, sandbox)
-electron/preload.js     expõe window.dados (listar, obter, inserir, atualizar, excluir)
-electron/ipc-dados.js   canais IPC -> camada de dados
-electron/chave.js       gera/guarda a chave do banco (safeStorage)
+electron/preload.js     expõe window.dados, window.sessao e window.usuarios
+electron/ipc.js         canais IPC + sessão + regras de acesso
+electron/chave.js       gera/guarda/recupera a chave do banco (safeStorage)
 src/dados/banco.js      abre o SQLite cifrado e aplica migrações
 src/dados/migracoes.js  migrações versionadas
 src/dados/repositorio.js CRUD com lista branca de tabelas/colunas
+src/dados/usuarios.js   usuários locais, hash scrypt, autenticação
 test/                   testes (node --test)
 ```
 

@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Documento | PLANO.md |
-| Revisão | 01 |
+| Revisão | 02 |
 | Data | 17/11/2026 |
 | Responsável | Isabelle Dutra |
 | Origem | Fork local de `IsabelleDutrax/sistema-mvp-ong-fenix` (histórico preservado; remote `upstream` somente leitura) |
@@ -20,7 +20,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | **Por quê** | O cliente exige que os dados sensíveis fiquem só na máquina dele. O usuário final não é técnico. |
 | **Onde** | PC Windows do cliente. Programa em `Arquivos de Programas`; dados em `%APPDATA%\FenixConecta\dados`. |
 | **Quem** | Desenvolvimento: Isabelle Dutra (com suporte de IA). Uso: equipe da ONG (admin + usuários comuns). |
-| **Quando** | Fases 1 e 2 em 17/11/2026. Datas das fases 3 a 7 a definir com a responsável. |
+| **Quando** | Fases 1, 2 e 3 em 17/11/2026. Datas das fases 4 a 7 a definir com a responsável. |
 | **Como** | Electron + SQLite criptografado (`better-sqlite3-multiple-ciphers`, esquema SQLCipher v4), IPC com `contextIsolation`, instalador `.exe` com atualização via GitHub Releases. |
 | **Quanto** | Sem custo de licença (bibliotecas MIT). Custo de assinatura de código do instalador: precisa de validação (ver decisões em aberto). |
 
@@ -30,7 +30,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 |---|---|---|---|
 | 1 Base | Estrutura Electron abre o sistema atual como janela (`npm start`). | Janela abre com login e telas originais. | Concluída |
 | 2 Banco local | SQLite criptografado com as 3 tabelas e migrações versionadas. Camada de dados (`src/dados`) acessada por IPC seguro (`window.dados`). Supabase removido. | CRUD das 3 entidades funciona; dados persistem após reiniciar; arquivo ilegível sem a chave; testes automáticos passam. | Concluída |
-| 3 Login local | Tabela `usuario`, senha com hash (scrypt/argon2), níveis de acesso (admin = 99), tela de primeiro acesso que cria o admin e mostra a **chave de recuperação** para imprimir. | Login sem internet; usuário comum não vê funções de admin. | Pendente |
+| 3 Login local | Tabela `usuario` (migração 2), senha com hash scrypt, níveis de acesso (admin = 99, comum = 1), tela de primeiro acesso que cria o admin e mostra a **chave de recuperação** para imprimir, tela de recuperação, gestão de usuários e troca de senha. Regras de acesso no processo principal. | Login sem internet; usuário comum não vê funções de admin. | Concluída |
 | 4 Offline | Bootstrap, SweetAlert2, Choices.js, jsPDF, autotable, Flaticon e fonte embutidos (sem CDN). CSP restritiva. Remover `onclick` inline. | App funciona com a rede desligada. | Pendente |
 | 5 Excel e backup | Exportar Excel (cópia de consulta com data no nome + aviso LGPD). Backup criptografado diário na pasta do OneDrive (retenção 30 dias), aviso semanal de pendrive, botão "Restaurar backup", rodapé "Último backup". | Backup gerado, restaurado e verificado em teste. | Pendente |
 | 6 Instalador e atualização | `electron-builder` (NSIS `.exe`) + `electron-updater` via GitHub Releases. | Instalar, atualizar e desinstalar sem perder dados. | Pendente |
@@ -62,9 +62,9 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 
 ## Decisões em aberto
 
-1. **Nome do repositório público** e autorização para criar e enviar (push). Nada foi publicado.
-2. **Histórico herdado**: o histórico do repositório original contém a chave pública (publishable) do Supabase e um e-mail pessoal em comentário. O repositório original já é público, mas o novo repositório vai repetir esse conteúdo. Opções: (a) publicar com o histórico (recomendado só após revogar a chave no Supabase); (b) reescrever o histórico antes do push.
-3. **Chave de recuperação**: hoje a chave fica protegida pelo DPAPI. Se o Windows for reinstalado ou o usuário mudar, o banco só abre com a chave de recuperação impressa (fase 3). Até lá, não usar dados reais.
+1. ~~Nome do repositório~~: resolvido em 17/11/2026 — `IsabelleDutrax/fenix-conecta-local` (público).
+2. ~~Histórico herdado~~: resolvido em 17/11/2026 — histórico reescrito sem chaves, URLs do Supabase, e-mail pessoal e senha de teste. **Ação pendente da responsável:** revogar a chave no painel do Supabase (o repositório original ainda a expõe).
+3. **Permissões do usuário comum**: hoje o usuário comum faz o mesmo CRUD que o administrador (igual ao sistema web). Só o administrador gerencia usuários e vê a chave de recuperação. Validar com o cliente se o comum pode excluir registros.
 4. **Valor monetário** armazenado como `REAL` (paridade com o sistema atual). Alternativa mais precisa: centavos em `INTEGER` — avaliar na fase 5 (Excel).
 5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação.
 
