@@ -379,6 +379,19 @@ async function redefinirSenhaUsuario(id) {
   aviso("success", "Senha redefinida!");
 }
 
+// Exclusão é só para administrador (o processo principal também bloqueia).
+function podeExcluir() {
+  if (isAdmin) return true;
+  aviso("error", "Apenas administradores podem excluir registros.");
+  return false;
+}
+
+function botaoExcluir(acao) {
+  return isAdmin
+    ? `<primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="${acao}"></primary-button>`
+    : "";
+}
+
 // Páginas do app logado (sidebar) e a página atualmente visível
 const PAGES = {
   dashboard: "dashboard-page",
@@ -567,7 +580,7 @@ function renderDoadorTable() {
           ${d.email ? `<a href="mailto:${esc(d.email)}" class="btn btn-outline-primary" title="Enviar e-mail para ${esc(d.nome)}"><i class="fi fi-rr-envelope"></i></a>` : ""}
           <button type="button" class="btn btn-outline-secondary" title="Copiar mensagem de lembrete" onclick="copiarMensagemLembrete(${d.id_doador})"><i class="fi fi-rr-clipboard"></i></button>
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateDoador(${d.id_doador})"></primary-button>
-          <primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteDoador(${d.id_doador})"></primary-button>
+          ${botaoExcluir(`deleteDoador(${d.id_doador})`)}
         </div>
       </td>
     </tr>`;
@@ -1009,6 +1022,7 @@ async function salvarEdicaoDoador() {
 }
 
 function deleteDoador(id) {
+  if (!podeExcluir()) return;
   const temDoacoes = doacoesData.some((d) => d.id_doador === id);
   const temInteracoes = interacoesData.some((i) => i.id_doador === id);
 
@@ -1091,7 +1105,7 @@ async function loadDoacoes() {
       <td class="actions-td">
         <div class="actions-content">
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateDoacao(${d.id_doacao})"></primary-button>
-          <primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteDoacao(${d.id_doacao})"></primary-button>
+          ${botaoExcluir(`deleteDoacao(${d.id_doacao})`)}
         </div>
       </td>
     </tr>`;
@@ -1312,6 +1326,7 @@ async function salvarEdicaoDoacao() {
 }
 
 function deleteDoacao(id) {
+  if (!podeExcluir()) return;
   Swal.fire({
     title: "Tem certeza?",
     text: "Essa ação não pode ser desfeita!",
@@ -1377,7 +1392,7 @@ async function loadInteracoes() {
       <td class="actions-td">
         <div class="actions-content">
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateInteracaoNova(${i.id_interacao})"></primary-button>
-          <primary-button icon="fi fi-rr-trash" className="btn btn-danger" data-onclick="deleteInteracaoNova(${i.id_interacao})"></primary-button>
+          ${botaoExcluir(`deleteInteracaoNova(${i.id_interacao})`)}
         </div>
       </td>
     </tr>`;
@@ -1600,6 +1615,7 @@ async function salvarEdicaoInteracao() {
 }
 
 function deleteInteracaoNova(id) {
+  if (!podeExcluir()) return;
   Swal.fire({
     title: "Tem certeza?",
     text: "Essa ação não pode ser desfeita!",
