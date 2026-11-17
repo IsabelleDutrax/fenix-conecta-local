@@ -42,4 +42,22 @@ module.exports = [
       CREATE INDEX idx_interacao_doador ON interacao_nova(id_doador);
     `,
   },
+  {
+    versao: 2,
+    nome: "usuarios locais com senha em hash e nivel de acesso",
+    sql: `
+      CREATE TABLE usuario (
+        id_usuario   INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome         TEXT    NOT NULL CHECK (length(trim(nome)) > 0),
+        email        TEXT    NOT NULL UNIQUE COLLATE NOCASE CHECK (length(trim(email)) > 0),
+        senha_hash   TEXT    NOT NULL,
+        -- 99 = administrador; 1 = usuario comum (mesmos niveis do sistema web)
+        nivel_acesso INTEGER NOT NULL DEFAULT 1 CHECK (nivel_acesso IN (1, 99)),
+        ativo        INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+        ultimo_login TEXT,
+        criado_em    TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        alterado_em  TEXT
+      );
+    `,
+  },
 ];

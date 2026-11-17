@@ -1,7 +1,7 @@
 // Processo principal do Electron: cria a janela do programa e liga a camada de dados.
 const path = require("node:path");
 const { app, BrowserWindow, shell } = require("electron");
-const { registrarCanaisDados, fecharDados } = require("./ipc-dados");
+const { registrarCanais, fecharDados } = require("./ipc");
 
 // Pasta do programa no %APPDATA% (sem acento, para evitar problemas de caminho).
 // Em desenvolvimento/testes, FENIX_PASTA_DADOS isola os dados (ignorado no instalador).
@@ -66,7 +66,7 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(() => {
-  registrarCanaisDados();
+  registrarCanais();
   criarJanela();
 });
 

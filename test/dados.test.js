@@ -76,7 +76,7 @@ describe("migrações", () => {
       .prepare("SELECT name FROM sqlite_master WHERE type='table'")
       .pluck()
       .all();
-    for (const t of ["doador_novo", "doacao_nova", "interacao_nova", "schema_migrations"]) {
+    for (const t of ["doador_novo", "doacao_nova", "interacao_nova", "usuario", "schema_migrations"]) {
       assert.ok(tabelas.includes(t), `faltou tabela ${t}`);
     }
   });
@@ -101,10 +101,11 @@ describe("migrações", () => {
   test("migração com erro é revertida por inteiro", () => {
     const quebrada = [
       ...MIGRACOES,
-      { versao: 2, nome: "quebrada", sql: "CREATE TABLE x (a INT); SELECT * FROM nao_existe;" },
+      { versao: 1000, nome: "quebrada", sql: "CREATE TABLE x (a INT); SELECT * FROM nao_existe;" },
     ];
+    const antes = versaoAtual(db);
     assert.throws(() => aplicarMigracoes(db, quebrada));
-    assert.equal(versaoAtual(db), 1);
+    assert.equal(versaoAtual(db), antes);
     const temX = db.prepare("SELECT 1 FROM sqlite_master WHERE name='x'").get();
     assert.equal(temX, undefined);
   });
