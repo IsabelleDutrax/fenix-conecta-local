@@ -12,7 +12,7 @@ npm start      # abre o programa
 npm test       # testes da camada de dados
 ```
 
-- Dados: `%APPDATA%\FenixConecta\dadosenix.db` (cifrado).
+- Dados: `%APPDATA%\FenixConecta\dados\fenix.db` (cifrado).
 - Chave do banco: `%APPDATA%\FenixConecta\chave.bin`, protegida pelo DPAPI do Windows.
 - Para testar sem tocar nos dados normais: defina `FENIX_PASTA_DADOS=<pasta>` antes de `npm start`.
 - Login (fase 2, **provisório**): qualquer e-mail e senha entram como administrador. O login real chega na fase 3. **Não use dados reais antes da fase 3.**
