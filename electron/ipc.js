@@ -10,11 +10,13 @@ const { abrirBanco } = require("../src/dados/banco");
 const { criarRepositorio } = require("../src/dados/repositorio");
 const { criarUsuarios } = require("../src/dados/usuarios");
 const chaves = require("./chave");
+const { criarServicoBackup } = require("./backup-servico");
 
 let db = null;
 let repo = null;
 let usuarios = null;
 let sessao = null; // { id_usuario, nome, email, admin }
+let chaveAtual = null;
 
 // Bloqueio simples contra tentativa de senha em sequência.
 const LIMITE_FALHAS = 5;
@@ -35,6 +37,14 @@ function abrirCom(chave) {
   db = abrirBanco(arquivoBanco(), chave);
   repo = criarRepositorio(db);
   usuarios = criarUsuarios(db);
+  chaveAtual = chave;
+  servicoBackup.aoAbrirBanco();
+}
+
+function fecharBanco() {
+  if (db) db.close();
+  db = repo = usuarios = null;
+  chaveAtual = null;
 }
 
 // Abre o banco se possível. Devolve o estado da inicialização para a tela.
@@ -85,6 +95,24 @@ function abrirSessao(usuario) {
 
 const OPERACOES_DADOS = ["listar", "obter", "inserir", "atualizar", "excluir"];
 
+const servicoBackup = criarServicoBackup({
+  db: () => db,
+  chave: () => chaveAtual,
+  arquivoBanco,
+  sessao: () => sessao,
+  contarUsuarios: () => (usuarios ? usuarios.contar() : 0),
+  exigirSessao,
+  exigirAdmin,
+  conferirSenha: (senha) => usuarios.conferirSenha(sessao.id_usuario, senha),
+  fecharBanco,
+  reabrirBanco: (chave) => abrirCom(chave),
+  salvarChave: (chave) => chaves.salvarChave(pasta(), chave),
+  formatarChave: chaves.formatarChave,
+  encerrarSessao: () => {
+    sessao = null;
+  },
+});
+
 // handlers: canal -> função(...args) que devolve o "data"; erros viram { error }.
 const HANDLERS = {
   "sessao:estado": () => estado(),
@@ -92,7 +120,9 @@ const HANDLERS = {
   "sessao:primeiroAcesso": (dadosAdmin) => {
     if (prepararBanco() !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
     const admin = usuarios.criarPrimeiroAdmin(dadosAdmin || {});
-    return { usuario: abrirSessao(admin), chaveRecuperacao: chaves.lerChave(pasta()) };
+    const resultado = { usuario: abrirSessao(admin), chaveRecuperacao: chaves.lerChave(pasta()) };
+    servicoBackup.verificarAgenda(); // primeiro backup já no primeiro acesso
+    return resultado;
   },
 
   "sessao:entrar": (email, senha) => {
@@ -105,7 +135,9 @@ const HANDLERS = {
     try {
       const usuario = usuarios.autenticar(email, senha);
       falhas = 0;
-      return abrirSessao(usuario);
+      const s = abrirSessao(usuario);
+      servicoBackup.verificarAgenda(); // no máximo um backup automático por dia
+      return s;
     } catch (e) {
       if (e.code === "CREDENCIAIS" && ++falhas >= LIMITE_FALHAS) {
         falhas = 0;
@@ -171,6 +203,8 @@ const HANDLERS = {
     usuarios.definirSenha(id, novaSenha);
     return true;
   },
+
+  ...servicoBackup.handlers,
 };
 
 function origemValida(evento) {
@@ -185,10 +219,10 @@ function falha(e) {
 
 function registrarCanais() {
   for (const [canal, fn] of Object.entries(HANDLERS)) {
-    ipcMain.handle(canal, (evento, ...args) => {
+    ipcMain.handle(canal, async (evento, ...args) => {
       if (!origemValida(evento)) return falha(erro("Origem não autorizada.", "ORIGEM"));
       try {
-        return { data: fn(...args), error: null };
+        return { data: await fn(...args), error: null };
       } catch (e) {
         return falha(e);
       }
@@ -220,10 +254,8 @@ function registrarCanais() {
 
 function fecharDados() {
   sessao = null;
-  if (db) {
-    db.close();
-    db = repo = usuarios = null;
-  }
+  servicoBackup.parar();
+  fecharBanco();
 }
 
 module.exports = { registrarCanais, fecharDados, arquivoBanco };

@@ -198,10 +198,13 @@
             Interações</a></li>
         <li class="somente-admin hidden"><a class="nav-link" data-page="usuarios" data-click="showPage('usuarios')"><i
               class="fi fi-rr-user-gear"></i> Usuários</a></li>
+        <li class="somente-admin hidden"><a class="nav-link" data-page="backup" data-click="showPage('backup')"><i
+              class="fi fi-rr-database"></i> Backup</a></li>
       </ul>
       <div class="sidebar-footer">
         <span class="logged-in-text">Logado como <strong id="userEmailDisplay"></strong>
           <small id="userNivelDisplay" class="d-block"></small></span>
+        <div id="statusBackup" class="status-backup" title="Cópia de segurança automática"></div>
         <a class="nav-link" data-click="alterarMinhaSenha()"><i class="fi fi-rr-key"></i> Alterar minha senha</a>
         <a class="nav-link somente-admin hidden" data-click="verChaveRecuperacao()"><i class="fi fi-rr-shield-check"></i>
           Chave de recuperação</a>
@@ -218,10 +221,10 @@
             <h1>Dashboard</h1>
             <p>Visão geral das doações e doadores</p>
           </div>
-          <button type="button" class="btn btn-outline-secondary"
-            title="Baixa um arquivo com todos os dados do sistema (doadores, doações e interações), útil como cópia de segurança"
-            data-click="exportarBackupCompleto()">
-            <i class="fi fi-rr-cloud-download-alt me-1"></i>Backup completo
+          <button type="button" class="btn btn-outline-secondary somente-admin hidden"
+            title="Gera uma planilha Excel para consulta (cópia; alterações nela não voltam para o sistema)"
+            data-click="exportarExcel()">
+            <i class="fi fi-rr-file-excel me-1"></i>Exportar Excel (consulta)
           </button>
         </div>
         <div class="d-flex align-items-center gap-2 mb-2">
@@ -734,6 +737,66 @@
           </table>
         </div>
       </div>
+      <!-- Backup (somente administrador) -->
+      <div id="backup-section" class="app-page section hidden">
+        <h2>Backup</h2>
+        <p class="text-muted">Cópias de segurança criptografadas. Só abrem com a chave de recuperação deste sistema.</p>
+
+        <div class="row g-3 mb-3">
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title"><i class="fi fi-rr-cloud-check me-1"></i> Backup automático</h5>
+                <p class="mb-1">Último backup: <strong id="bkpUltimo">-</strong></p>
+                <p class="mb-1 small text-muted">Feito todo dia, no primeiro uso do programa. Guarda os últimos
+                  <span id="bkpRetencao">30</span> dias.</p>
+                <p class="mb-2 small">Pasta: <span id="bkpPasta" class="text-break"></span> <span id="bkpTipoPasta"
+                    class="badge bg-secondary"></span></p>
+                <div id="bkpErro" class="alert alert-danger py-2 small hidden"></div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-orange" data-click="fazerBackupAgora()"><i
+                      class="fi fi-rr-disk me-1"></i>Fazer backup agora</button>
+                  <button type="button" class="btn btn-outline-secondary" data-click="abrirPastaBackup()"><i
+                      class="fi fi-rr-folder-open me-1"></i>Abrir pasta</button>
+                  <button type="button" class="btn btn-outline-secondary" data-click="escolherPastaBackup()"><i
+                      class="fi fi-rr-folder me-1"></i>Alterar pasta</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title"><i class="fi fi-rr-usb-pendrive me-1"></i> Cópia em pendrive</h5>
+                <p class="mb-1">Última cópia em pendrive: <strong id="bkpPendrive">nunca</strong></p>
+                <p class="small text-muted">Recomendado uma vez por semana. Guarde o pendrive longe do computador.</p>
+                <button type="button" class="btn btn-outline-secondary" data-click="copiarParaPendrive()"><i
+                    class="fi fi-rr-usb-pendrive me-1"></i>Copiar para pendrive</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Backups disponíveis</h5>
+          <button type="button" class="btn btn-outline-danger" data-click="restaurarDeArquivo()"><i
+              class="fi fi-rr-time-past me-1"></i>Restaurar de outro arquivo...</button>
+        </div>
+        <div class="table-responsive">
+          <table id="backupTable">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Arquivo</th>
+                <th>Tamanho</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Usuários (somente administrador) -->
       <div id="usuarios-section" class="app-page section hidden">
         <h2>Usuários</h2>

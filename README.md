@@ -19,6 +19,14 @@ npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 - Primeiro uso: a tela de **primeiro acesso** cria o administrador e mostra a **chave de recuperação** (imprimir e guardar). Sem `chave.bin` (ex.: Windows reinstalado), o programa pede essa chave.
 - Usuários: senha com hash scrypt; níveis 99 (administrador) e 1 (usuário comum). O usuário comum cadastra e edita; só o administrador exclui registros, gerencia usuários (menu **Usuários**) e pode rever a chave com a própria senha. 5 senhas erradas seguidas bloqueiam o login por 30 s.
 
+## Backup e Excel
+
+- Backup cifrado automático, uma vez por dia, em `%OneDrive%\Backup Fenix Conecta` (sem OneDrive: `Documentos`). Guarda 30 dias.
+- Página **Backup** (administrador): fazer backup agora, abrir/alterar pasta, copiar para pendrive, restaurar (da lista ou de outro arquivo).
+- Lembrete semanal de cópia em pendrive para o administrador; status "Último backup" no rodapé.
+- **Exportar Excel (consulta)** no Dashboard (administrador): cópia com data no nome, aba LEIA-ME com aviso LGPD.
+- Testes: `FENIX_PASTA_BACKUP=<pasta>` redireciona os backups; `FENIX_TESTE_DIALOGO=<pasta>` responde às janelas de escolher pasta/salvar. Ambos ignorados no instalador.
+
 ## Segurança e modo offline
 
 - Funciona sem internet: todas as bibliotecas e fontes ficam em `vendor/`.
@@ -37,6 +45,10 @@ src/dados/banco.js      abre o SQLite cifrado e aplica migrações
 src/dados/migracoes.js  migrações versionadas
 src/dados/repositorio.js CRUD com lista branca de tabelas/colunas
 src/dados/usuarios.js   usuários locais, hash scrypt, autenticação
+src/dados/backup.js     backup cifrado, retenção, restauração
+src/dados/excel.js      planilha de consulta (write-excel-file)
+src/dados/configuracao.js configurações (chave/valor) no banco
+electron/backup-servico.js agenda diária, OneDrive, pendrive, restaurar, Excel
 vendor/                 bibliotecas embutidas (gerado por npm run vendor; ver vendor/VERSOES.md)
 scripts/copiar-vendor.js copia as bibliotecas de node_modules para vendor/
 test/                   testes (node --test)

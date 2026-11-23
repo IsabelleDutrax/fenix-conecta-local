@@ -214,3 +214,28 @@
         padding: $padding * 5 $padding $padding;
     }
 }
+// Fase 5: status do backup no rodapé do menu
+.status-backup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    margin-bottom: $margin;
+
+    &:empty {
+        display: none;
+    }
+
+    &.status-ok {
+        color: #198754;
+    }
+
+    &.status-atencao {
+        color: #b26a00;
+    }
+
+    &.status-erro {
+        color: #dc3545;
+        font-weight: bold;
+    }
+}

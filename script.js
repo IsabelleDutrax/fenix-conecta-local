@@ -120,6 +120,7 @@ function entrarNoSistema(usuario) {
   showPage("dashboard");
   if (!choicesDoador) initSelectsBuscaDoador();
   loadData();
+  atualizarStatusBackup().then(verificarLembretePendrive);
 }
 
 async function signOut() {
@@ -392,6 +393,276 @@ function botaoExcluir(acao) {
     : "";
 }
 
+// --------------
+// BACKUP E EXCEL (regras no processo principal: electron/backup-servico.js)
+// --------------
+let statusBackupAtual = null;
+
+function tamanhoLegivel(bytes) {
+  if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
+  return Math.max(1, Math.round(bytes / 1024)) + " KB";
+}
+
+const NOMES_TIPO_PASTA = {
+  onedrive: "OneDrive",
+  documentos: "Documentos (sem OneDrive)",
+  personalizada: "Pasta escolhida",
+  teste: "Teste",
+};
+
+async function atualizarStatusBackup() {
+  const el = document.getElementById("statusBackup");
+  if (!currentUser) {
+    el.textContent = "";
+    return null;
+  }
+  const { data, error } = await backup.status();
+  if (error) return null;
+  statusBackupAtual = data;
+
+  let classe = "ok";
+  let texto = data.ultimo ? `Último backup: ${formatarDataHora(data.ultimo)}` : "Nenhum backup ainda";
+  if (data.erro && (!data.ultimo || data.erro.data > data.ultimo)) {
+    classe = "erro";
+    texto = "Backup com problema";
+  } else if (data.atrasado) {
+    classe = "atencao";
+  }
+  el.className = `status-backup status-${classe}`;
+  el.innerHTML = `<i class="fi fi-rr-${classe === "ok" ? "cloud-check" : "cloud-exclamation"}"></i> ${esc(texto)}`;
+  el.title = data.erro && classe === "erro" ? data.erro.mensagem : `Pasta: ${data.pasta}`;
+
+  if (!document.getElementById("backup-section").classList.contains("hidden")) preencherPaginaBackup(data);
+  return data;
+}
+
+function preencherPaginaBackup(s) {
+  document.getElementById("bkpUltimo").textContent = s.ultimo ? formatarDataHora(s.ultimo) : "nenhum";
+  document.getElementById("bkpRetencao").textContent = s.retencaoDias;
+  document.getElementById("bkpPasta").textContent = s.pasta;
+  document.getElementById("bkpTipoPasta").textContent = NOMES_TIPO_PASTA[s.tipoPasta] || s.tipoPasta;
+  document.getElementById("bkpPendrive").textContent = s.ultimoPendrive ? formatarDataHora(s.ultimoPendrive) : "nunca";
+  const erroEl = document.getElementById("bkpErro");
+  const mostrarErro = s.erro && (!s.ultimo || s.erro.data > s.ultimo);
+  erroEl.classList.toggle("hidden", !mostrarErro);
+  erroEl.textContent = mostrarErro ? `Último backup falhou em ${formatarDataHora(s.erro.data)}: ${s.erro.mensagem}` : "";
+}
+
+async function loadBackup() {
+  if (!isAdmin) return;
+  const s = await atualizarStatusBackup();
+  if (s) preencherPaginaBackup(s);
+  const { data, error } = await backup.listar();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  const tbody = document.querySelector("#backupTable tbody");
+  tbody.innerHTML = data.length
+    ? data
+        .map(
+          (b) => `<tr>
+        <td>${formatarDataHora(b.data)}</td>
+        <td class="small">${esc(b.nome)}</td>
+        <td>${tamanhoLegivel(b.tamanho)}</td>
+        <td class="actions-td"><div class="actions-content">
+          <button type="button" class="btn btn-outline-danger btn-sm" title="Restaurar este backup" data-click="restaurarDaLista('${esc(b.nome)}')"><i class="fi fi-rr-time-past me-1"></i>Restaurar</button>
+        </div></td>
+      </tr>`,
+        )
+        .join("")
+    : `<tr><td colspan="4" class="text-center text-muted">Nenhum backup nesta pasta</td></tr>`;
+}
+
+async function fazerBackupAgora() {
+  aviso("info", "Fazendo backup...");
+  const { data, error } = await backup.fazerAgora();
+  if (error) {
+    await atualizarStatusBackup();
+    return tratarSessaoEncerrada(error) || aviso("error", "Backup não foi feito", error.message);
+  }
+  aviso("success", "Backup feito!", data.nome);
+  if (isAdmin) loadBackup();
+  else atualizarStatusBackup();
+}
+
+async function abrirPastaBackup() {
+  const { error } = await backup.abrirPasta();
+  if (error) aviso("error", error.message);
+}
+
+async function escolherPastaBackup() {
+  const { data, error } = await backup.escolherPasta();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", "Pasta não alterada", error.message);
+  if (!data) return;
+  aviso("success", "Pasta alterada e backup feito!");
+  loadBackup();
+}
+
+async function copiarParaPendrive() {
+  await Swal.fire({
+    title: "Cópia em pendrive",
+    text: "Conecte o pendrive e, na próxima janela, escolha o pendrive (ou uma pasta dentro dele).",
+    icon: "info",
+    confirmButtonText: "Escolher pendrive",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange" },
+  });
+  const { data, error } = await backup.copiarPendrive();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", "Cópia não foi feita", error.message);
+  if (!data) return;
+  await Swal.fire({
+    icon: data.avisoMesmoDisco ? "warning" : "success",
+    title: "Cópia feita!",
+    html: `<p class="text-break small">${esc(data.arquivo)}</p>${
+      data.avisoMesmoDisco
+        ? "<p><strong>Atenção:</strong> a pasta escolhida está no disco do próprio computador, não num pendrive.</p>"
+        : "<p>Retire o pendrive com segurança e guarde-o longe do computador.</p>"
+    }`,
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange" },
+  });
+  atualizarStatusBackup();
+  if (!document.getElementById("backup-section").classList.contains("hidden")) loadBackup();
+}
+
+// Lembrete semanal (só administrador): aparece após o login.
+async function verificarLembretePendrive(s) {
+  if (!isAdmin || !s || !s.lembrarPendrive) return;
+  const r = await Swal.fire({
+    title: "Hora da cópia em pendrive",
+    html: `O backup automático está em dia.<br>Uma vez por semana, faça também uma cópia em <strong>pendrive</strong>
+      para proteger os dados se o computador quebrar ou for roubado.<br><small class="text-muted">Última cópia em pendrive: ${
+        s.ultimoPendrive ? formatarDataHora(s.ultimoPendrive) : "nunca"
+      }</small>`,
+    icon: "info",
+    showCancelButton: true,
+    confirmButtonText: "Copiar agora",
+    cancelButtonText: "Lembrar amanhã",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+  });
+  if (r.isConfirmed) return copiarParaPendrive();
+  await backup.adiarLembrete();
+}
+
+async function restaurarDaLista(nome) {
+  const { data, error } = await backup.analisarDaLista(nome);
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  fluxoRestauracao(data);
+}
+
+async function restaurarDeArquivo() {
+  const { data, error } = await backup.analisarArquivo();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", error.message);
+  if (data) fluxoRestauracao(data);
+}
+
+async function fluxoRestauracao(info) {
+  // Backup de outro computador: pede a chave de recuperação dele.
+  while (info.precisaChave) {
+    const r = await Swal.fire({
+      title: "Backup de outro computador",
+      html: `<p class="text-start">O arquivo <strong>${esc(info.nome)}</strong> foi criado com outra chave.
+        Digite a <strong>chave de recuperação</strong> impressa no computador de origem.</p>
+        <input id="swalChaveBackup" class="form-control" placeholder="XXXXXXXX-XXXXXXXX-..." autocomplete="off" spellcheck="false">`,
+      showCancelButton: true,
+      confirmButtonText: "Conferir",
+      cancelButtonText: "Cancelar",
+      buttonsStyling: false,
+      customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+      preConfirm: () => document.getElementById("swalChaveBackup").value,
+    });
+    if (!r.isConfirmed) return backup.cancelarRestauracao();
+    const { data, error } = await backup.informarChave(r.value);
+    if (error) {
+      await aviso("error", error.message);
+      continue;
+    }
+    info = data;
+  }
+
+  const c = info.contagens;
+  const data = info.data ? formatarDataHora(info.data) : "data desconhecida";
+  const confirmacao = await Swal.fire({
+    title: "Restaurar backup?",
+    icon: "warning",
+    html: `<div class="text-start">
+      <p>Backup de <strong>${esc(data)}</strong> com ${c.doadores} doadores, ${c.doacoes} doações,
+        ${c.interacoes} interações e ${c.usuarios} usuários.</p>
+      <p><strong>Os dados atuais serão substituídos por este backup.</strong> Antes disso, o programa faz uma
+        cópia de segurança dos dados atuais.</p>
+      ${info.outraChave ? "<p>Este backup é de outro computador: a chave de recuperação passa a ser a dele.</p>" : ""}
+      <p>Depois da restauração, entre de novo com um usuário <strong>do backup</strong>.</p>
+      <label class="form-label" for="swalSenhaRestaurar">Sua senha de administrador</label>
+      <input type="password" id="swalSenhaRestaurar" class="form-control" autocomplete="off"></div>`,
+    showCancelButton: true,
+    confirmButtonText: "Restaurar",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-danger me-2", cancelButton: "btn btn-ghost" },
+    preConfirm: () => document.getElementById("swalSenhaRestaurar").value,
+  });
+  if (!confirmacao.isConfirmed) return backup.cancelarRestauracao();
+
+  const { data: r, error } = await backup.confirmarRestauracao(confirmacao.value);
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", "Backup não restaurado", error.message);
+
+  currentUser = null;
+  isAdmin = false;
+  doadoresData = [];
+  doacoesData = [];
+  interacoesData = [];
+  await Swal.fire({
+    icon: "success",
+    title: "Backup restaurado!",
+    html: `Os dados anteriores foram guardados no backup <br><small>${esc(r.backupDeSeguranca)}</small>.<br>Entre novamente.`,
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange" },
+  });
+  iniciarSistema();
+}
+
+async function exportarExcel() {
+  const confirmacao = await Swal.fire({
+    title: "Exportar Excel de consulta",
+    icon: "warning",
+    html: `<div class="text-start">
+      <p>A planilha terá <strong>dados pessoais</strong> (nome, CPF/CNPJ, telefone, e-mail, endereço) e
+        <strong>não é protegida por senha</strong>.</p>
+      <ul>
+        <li>Não envie por e-mail ou WhatsApp.</li>
+        <li>Não salve em pendrive ou computador de terceiros.</li>
+        <li>Apague o arquivo quando terminar a consulta.</li>
+      </ul>
+      <p class="mb-0">É uma <strong>cópia para consulta</strong>: alterações na planilha não voltam para o sistema.</p></div>`,
+    showCancelButton: true,
+    confirmButtonText: "Entendi, exportar",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+  });
+  if (!confirmacao.isConfirmed) return;
+
+  const { data, error } = await backup.exportarExcel();
+  if (error) return tratarSessaoEncerrada(error) || aviso("error", "Planilha não gerada", error.message);
+  if (!data) return;
+  const r = await Swal.fire({
+    icon: "success",
+    title: "Planilha gerada!",
+    html: `<p class="text-break small">${esc(data.arquivo)}</p>
+      <p>${data.registros.doadores} doadores, ${data.registros.doacoes} doações, ${data.registros.interacoes} interações.</p>`,
+    showDenyButton: true,
+    confirmButtonText: "Fechar",
+    denyButtonText: "Mostrar na pasta",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-ghost me-2", denyButton: "btn btn-orange" },
+  });
+  if (r.isDenied) backup.mostrarExcel();
+}
+
+// Atualiza o rodapé de tempos em tempos (o backup automático roda no processo principal).
+setInterval(() => {
+  if (currentUser) atualizarStatusBackup();
+}, 5 * 60 * 1000);
+
 // Páginas do app logado (sidebar) e a página atualmente visível
 const PAGES = {
   dashboard: "dashboard-page",
@@ -399,10 +670,11 @@ const PAGES = {
   doacao: "doacao-section",
   interacao: "interacao-section",
   usuarios: "usuarios-section",
+  backup: "backup-section",
 };
 
 function showPage(page) {
-  if (page === "usuarios" && !isAdmin) page = "dashboard";
+  if ((page === "usuarios" || page === "backup") && !isAdmin) page = "dashboard";
   Object.values(PAGES).forEach((id) =>
     document.getElementById(id).classList.add("hidden"),
   );
@@ -418,6 +690,7 @@ function showPage(page) {
 
   if (page === "dashboard") renderDashboard();
   if (page === "usuarios") loadUsuarios();
+  if (page === "backup") loadBackup();
 
   fecharMenuMobile();
 }
@@ -632,25 +905,6 @@ function copiarMensagemLembrete(idDoador) {
       animation: true,
     });
   });
-}
-
-// Baixa um arquivo único com todos os dados do sistema (cópia de segurança manual)
-function exportarBackupCompleto() {
-  const backup = {
-    geradoEm: new Date().toISOString(),
-    doadores: doadoresData,
-    doacoes: doacoesData,
-    interacoes: interacoesData,
-  };
-
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {
-    type: "application/json",
-  });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `backup-fenix-conecta-${hojeISO()}.json`;
-  link.click();
-  URL.revokeObjectURL(link.href);
 }
 
 // =========================
@@ -1783,7 +2037,8 @@ const ACOES_PERMITIDAS = new Set([
   "abrirDoacoesDoador", "abrirModalUsuario", "addDoacao", "addDoador", "addInteracaoNova",
   "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
   "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
-  "exportarBackupCompleto", "exportarCSV", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "exportarCSV", "exportarExcel", "fazerBackupAgora", "abrirPastaBackup", "escolherPastaBackup",
+  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "exportarPDF", "fecharMenuMobile", "imprimirChave",
   "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
   "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
   "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",

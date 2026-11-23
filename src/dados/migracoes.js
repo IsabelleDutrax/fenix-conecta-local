@@ -60,4 +60,15 @@ module.exports = [
       );
     `,
   },
+  {
+    versao: 3,
+    nome: "configuracoes do sistema (backup, lembretes)",
+    sql: `
+      CREATE TABLE configuracao (
+        chave       TEXT PRIMARY KEY,
+        valor       TEXT,
+        alterado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      );
+    `,
+  },
 ];
