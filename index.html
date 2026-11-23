@@ -4,22 +4,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Segurança: só carrega arquivos do próprio programa. Nada de internet, nada de script inline.
+       style-src 'unsafe-inline' é exigido pelo Bootstrap/SweetAlert2 (estilos aplicados por JS). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>Fenix Conecta</title>
   <link rel="icon" type="image/x-icon" href="./img/favicon_io/favicon.ico">
   <link rel="icon" type="image/png" sizes="16x16" href="./img/favicon_io/favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon_io/favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./img/favicon_io/apple-touch-icon.png">
   <link rel="manifest" href="./img/favicon_io/site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Bibliotecas embutidas (vendor/, gerado por npm run vendor): funciona sem internet -->
+  <link href="./vendor/fonts/libre-baskerville/400.css" rel="stylesheet">
+  <link href="./vendor/fonts/libre-baskerville/700.css" rel="stylesheet">
   <!-- Bootstrap 5 (componentes de Modal/Formulário) - carregado antes do style.css
        para que os estilos locais tenham  prioridade -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="./vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
-  <link href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css" rel="stylesheet">
+  <link href="./vendor/uicons/css/regular/rounded.css" rel="stylesheet">
   <!-- Choices.js (select com busca) -->
-  <link href="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/styles/choices.min.css" rel="stylesheet">
+  <link href="./vendor/choices/choices.min.css" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -122,7 +125,7 @@
               data-onclick="copiarChave()"></primary-button>
           </div>
           <label class="confirmacao-chave">
-            <input type="checkbox" id="chaveGuardada" onchange="liberarContinuar(this.checked)">
+            <input type="checkbox" id="chaveGuardada" data-change="liberarContinuar(this.checked)">
             <span>Imprimi (ou anotei) a chave e guardei em local seguro.</span>
           </label>
           <primary-button label="Continuar" className="btn-block" data-id="btnConcluirChave"
@@ -148,7 +151,7 @@
           </div>
           <div class="form-group">
             <div class="password-block">
-              <input type="password" id="password" placeholder="Senha" oninput="toggleSenhaBtn()">
+              <input type="password" id="password" placeholder="Senha" data-input="toggleSenhaBtn()">
               <primary-button data-id="btn-toggle-senha" className="btn-icon" title="Ver ou ocultar senha"
                 data-onclick="viewSenha()" icon="fi fi-rr-eye-crossed" iconId="icon-password" disabled></primary-button>
 
@@ -158,10 +161,10 @@
           <primary-button label="Entrar" className="btn-block" data-onclick="signIn()"></primary-button>
 
           <!-- <div class="auth-links">
-            <a onclick="signUp()">Cadastrar</a>
+            <a data-click="signUp()">Cadastrar</a>
           </div> -->
         </div>
-        <p class="footer-credit">Desenvolvido por Isabelle Dutra — Curso ADS na Uninter, 2026</p>
+        <p class="footer-credit">Desenvolvido por Isabelle Dutra — Curso ADS na Uninter, 2026<br>Ícones: Uicons by Flaticon</p>
       </div>
     </div>
   </section>
@@ -175,7 +178,7 @@
 
     <nav class="sidebar offcanvas-start offcanvas-md" tabindex="-1" id="sidebarSystem"
       aria-labelledby="sidebarSystemLabel">
-      <button type="button" class="btn-close sidebar-close d-md-none" onclick="fecharMenuMobile()"
+      <button type="button" class="btn-close sidebar-close d-md-none" data-click="fecharMenuMobile()"
         aria-label="Fechar"></button>
       <div class="sidebar-brand" id="sidebarSystemLabel">
         <div class="logo-circle logo-circle-sm"></div>
@@ -185,25 +188,25 @@
         </div>
       </div>
       <ul class="nav flex-column">
-        <li><a class="nav-link active" data-page="dashboard" onclick="showPage('dashboard')"><i
+        <li><a class="nav-link active" data-page="dashboard" data-click="showPage('dashboard')"><i
               class="fi fi-rr-dashboard"></i> Dashboard</a></li>
-        <li><a class="nav-link" data-page="doador" onclick="showPage('doador')"><i class="fi fi-rr-users"></i>
+        <li><a class="nav-link" data-page="doador" data-click="showPage('doador')"><i class="fi fi-rr-users"></i>
             Doadores</a></li>
-        <li><a class="nav-link" data-page="doacao" onclick="showPage('doacao')"><i class="fi fi-rr-gift"></i>
+        <li><a class="nav-link" data-page="doacao" data-click="showPage('doacao')"><i class="fi fi-rr-gift"></i>
             Doações</a></li>
-        <li><a class="nav-link" data-page="interacao" onclick="showPage('interacao')"><i class="fi fi-rr-comment"></i>
+        <li><a class="nav-link" data-page="interacao" data-click="showPage('interacao')"><i class="fi fi-rr-comment"></i>
             Interações</a></li>
-        <li class="somente-admin hidden"><a class="nav-link" data-page="usuarios" onclick="showPage('usuarios')"><i
+        <li class="somente-admin hidden"><a class="nav-link" data-page="usuarios" data-click="showPage('usuarios')"><i
               class="fi fi-rr-user-gear"></i> Usuários</a></li>
       </ul>
       <div class="sidebar-footer">
         <span class="logged-in-text">Logado como <strong id="userEmailDisplay"></strong>
           <small id="userNivelDisplay" class="d-block"></small></span>
-        <a class="nav-link" onclick="alterarMinhaSenha()"><i class="fi fi-rr-key"></i> Alterar minha senha</a>
-        <a class="nav-link somente-admin hidden" onclick="verChaveRecuperacao()"><i class="fi fi-rr-shield-check"></i>
+        <a class="nav-link" data-click="alterarMinhaSenha()"><i class="fi fi-rr-key"></i> Alterar minha senha</a>
+        <a class="nav-link somente-admin hidden" data-click="verChaveRecuperacao()"><i class="fi fi-rr-shield-check"></i>
           Chave de recuperação</a>
-        <a class="nav-link" onclick="signOut()"><i class="fi fi-rr-exit"></i> Sair</a>
-        <p class="footer-credit">Desenvolvido por Isabelle Dutra — Curso ADS na Uninter, 2026</p>
+        <a class="nav-link" data-click="signOut()"><i class="fi fi-rr-exit"></i> Sair</a>
+        <p class="footer-credit">Desenvolvido por Isabelle Dutra — Curso ADS na Uninter, 2026<br>Ícones: Uicons by Flaticon</p>
       </div>
     </nav>
 
@@ -217,7 +220,7 @@
           </div>
           <button type="button" class="btn btn-outline-secondary"
             title="Baixa um arquivo com todos os dados do sistema (doadores, doações e interações), útil como cópia de segurança"
-            onclick="exportarBackupCompleto()">
+            data-click="exportarBackupCompleto()">
             <i class="fi fi-rr-cloud-download-alt me-1"></i>Backup completo
           </button>
         </div>
@@ -238,7 +241,7 @@
                   <div class="stat-icon bg-success"><i class="fi fi-rr-chart-line-up"></i></div>
                 </div>
                 <select class="form-select form-select-sm mt-2" id="periodoTotalArrecadado"
-                  onchange="renderDashboard()">
+                  data-change="renderDashboard()">
                   <option value="todos" selected>Todo o período</option>
                   <option value="semana">Última semana</option>
                   <option value="mes">Último mês</option>
@@ -251,7 +254,7 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card stat-card stat-card-clickable h-100" onclick="showPage('doador')">
+            <div class="card stat-card stat-card-clickable h-100" data-click="showPage('doador')">
               <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                   <div class="stat-label">Doadores</div>
@@ -263,7 +266,7 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card stat-card stat-card-clickable h-100" onclick="showPage('doacao')">
+            <div class="card stat-card stat-card-clickable h-100" data-click="showPage('doacao')">
               <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                   <div class="stat-label">Doações</div>
@@ -275,7 +278,7 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card stat-card stat-card-clickable h-100" onclick="showPage('interacao')">
+            <div class="card stat-card stat-card-clickable h-100" data-click="showPage('interacao')">
               <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                   <div class="stat-label">Interações</div>
@@ -300,10 +303,10 @@
               <i class="fi fi-rr-download me-1"></i>Exportar
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#" onclick="exportarCSV('doadorTable', 'doadores')">CSV (Excel)</a>
+              <li><a class="dropdown-item" href="#" data-click="exportarCSV('doadorTable', 'doadores')">CSV (Excel)</a>
               </li>
               <li><a class="dropdown-item" href="#"
-                  onclick="exportarPDF('doadorTable', 'doadores', 'Lista de Doadores')">PDF</a></li>
+                  data-click="exportarPDF('doadorTable', 'doadores', 'Lista de Doadores')">PDF</a></li>
             </ul>
           </div>
         </div>
@@ -426,13 +429,13 @@
           <table id="doadorTable">
             <thead>
               <tr>
-                <th class="th-sortable" onclick="ordenarTabela('doadorTable', 0, 'texto')">Nome <i
+                <th class="th-sortable" data-click="ordenarTabela('doadorTable', 0, 'texto')">Nome <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doadorTable', 1, 'texto')">Email <i
+                <th class="th-sortable" data-click="ordenarTabela('doadorTable', 1, 'texto')">Email <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doadorTable', 2, 'texto')">Telefone <i
+                <th class="th-sortable" data-click="ordenarTabela('doadorTable', 2, 'texto')">Telefone <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doadorTable', 3, 'numero')">Doações <i
+                <th class="th-sortable" data-click="ordenarTabela('doadorTable', 3, 'numero')">Doações <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th>Ações</th>
               </tr>
@@ -453,9 +456,9 @@
               <i class="fi fi-rr-download me-1"></i>Exportar
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#" onclick="exportarCSV('doacaoTable', 'doacoes')">CSV (Excel)</a></li>
+              <li><a class="dropdown-item" href="#" data-click="exportarCSV('doacaoTable', 'doacoes')">CSV (Excel)</a></li>
               <li><a class="dropdown-item" href="#"
-                  onclick="exportarPDF('doacaoTable', 'doacoes', 'Lista de Doações')">PDF</a></li>
+                  data-click="exportarPDF('doacaoTable', 'doacoes', 'Lista de Doações')">PDF</a></li>
             </ul>
           </div>
         </div>
@@ -576,13 +579,13 @@
           <table id="doacaoTable">
             <thead>
               <tr>
-                <th class="th-sortable" onclick="ordenarTabela('doacaoTable', 0, 'texto')">Doador <i
+                <th class="th-sortable" data-click="ordenarTabela('doacaoTable', 0, 'texto')">Doador <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doacaoTable', 1, 'moeda')">Valor <i
+                <th class="th-sortable" data-click="ordenarTabela('doacaoTable', 1, 'moeda')">Valor <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doacaoTable', 2, 'data')">Data <i
+                <th class="th-sortable" data-click="ordenarTabela('doacaoTable', 2, 'data')">Data <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('doacaoTable', 3, 'texto')">Status <i
+                <th class="th-sortable" data-click="ordenarTabela('doacaoTable', 3, 'texto')">Status <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th>Ações</th>
               </tr>
@@ -603,10 +606,10 @@
               <i class="fi fi-rr-download me-1"></i>Exportar
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#" onclick="exportarCSV('interacaoTable', 'interacoes')">CSV
+              <li><a class="dropdown-item" href="#" data-click="exportarCSV('interacaoTable', 'interacoes')">CSV
                   (Excel)</a></li>
               <li><a class="dropdown-item" href="#"
-                  onclick="exportarPDF('interacaoTable', 'interacoes', 'Lista de Interações')">PDF</a></li>
+                  data-click="exportarPDF('interacaoTable', 'interacoes', 'Lista de Interações')">PDF</a></li>
             </ul>
           </div>
         </div>
@@ -716,13 +719,13 @@
           <table id="interacaoTable">
             <thead>
               <tr>
-                <th class="th-sortable" onclick="ordenarTabela('interacaoTable', 0, 'texto')">Doador <i
+                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 0, 'texto')">Doador <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('interacaoTable', 1, 'texto')">Tipo <i
+                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 1, 'texto')">Tipo <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('interacaoTable', 2, 'texto')">Obs <i
+                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 2, 'texto')">Obs <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" onclick="ordenarTabela('interacaoTable', 3, 'data')">Data <i
+                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 3, 'data')">Data <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th>Ações</th>
               </tr>
@@ -807,13 +810,13 @@
 
 
   <!-- Bootstrap 5 JS (Modal, etc..) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="./vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="./vendor/sweetalert2/sweetalert2.all.min.js"></script>
   <!-- Choices.js (select com busca nos campos de doador) -->
-  <script src="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/scripts/choices.min.js"></script>
+  <script src="./vendor/choices/choices.min.js"></script>
   <!-- jsPDF (exportar tabelas em PDF) -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="./vendor/jspdf/jspdf.umd.min.js"></script>
+  <script src="./vendor/jspdf/jspdf.plugin.autotable.min.js"></script>
   <script src="./script.js" defer></script>
 
 </body>

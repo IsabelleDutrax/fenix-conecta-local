@@ -10,6 +10,7 @@ Programa de computador (Electron) para gestão de doações da ONG Fênix. Os da
 npm install
 npm start      # abre o programa
 npm test       # testes da camada de dados
+npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 ```
 
 - Dados: `%APPDATA%\FenixConecta\dados\fenix.db` (cifrado).
@@ -17,6 +18,13 @@ npm test       # testes da camada de dados
 - Para testar sem tocar nos dados normais: defina `FENIX_PASTA_DADOS=<pasta>` antes de `npm start`.
 - Primeiro uso: a tela de **primeiro acesso** cria o administrador e mostra a **chave de recuperação** (imprimir e guardar). Sem `chave.bin` (ex.: Windows reinstalado), o programa pede essa chave.
 - Usuários: senha com hash scrypt; níveis 99 (administrador) e 1 (usuário comum). O usuário comum cadastra e edita; só o administrador exclui registros, gerencia usuários (menu **Usuários**) e pode rever a chave com a própria senha. 5 senhas erradas seguidas bloqueiam o login por 30 s.
+
+## Segurança e modo offline
+
+- Funciona sem internet: todas as bibliotecas e fontes ficam em `vendor/`.
+- A janela só carrega arquivos da pasta do programa; pedidos à internet são cancelados no processo principal.
+- CSP sem script inline e sem `eval`. Botões usam `data-click="funcao(args)"`, executados por um despachante com lista branca (`ACOES_PERMITIDAS` em `script.js`). Ao criar um botão novo, inclua a função nessa lista.
+- Ícones: Uicons by Flaticon (crédito exigido pela licença, exibido no rodapé).
 
 ## Estrutura nova
 
@@ -29,6 +37,8 @@ src/dados/banco.js      abre o SQLite cifrado e aplica migrações
 src/dados/migracoes.js  migrações versionadas
 src/dados/repositorio.js CRUD com lista branca de tabelas/colunas
 src/dados/usuarios.js   usuários locais, hash scrypt, autenticação
+vendor/                 bibliotecas embutidas (gerado por npm run vendor; ver vendor/VERSOES.md)
+scripts/copiar-vendor.js copia as bibliotecas de node_modules para vendor/
 test/                   testes (node --test)
 ```
 
