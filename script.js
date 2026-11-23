@@ -298,8 +298,8 @@ async function loadUsuarios() {
         <td>${u.ultimo_login ? formatarDataHora(u.ultimo_login) : "-"}</td>
         <td class="actions-td">
           <div class="actions-content">
-            <button type="button" class="btn btn-outline-secondary" title="Editar" onclick="abrirModalUsuario(${u.id_usuario})"><i class="fi fi-rr-pencil"></i></button>
-            <button type="button" class="btn btn-outline-secondary" title="Redefinir senha" onclick="redefinirSenhaUsuario(${u.id_usuario})"><i class="fi fi-rr-key"></i></button>
+            <button type="button" class="btn btn-outline-secondary" title="Editar" data-click="abrirModalUsuario(${u.id_usuario})"><i class="fi fi-rr-pencil"></i></button>
+            <button type="button" class="btn btn-outline-secondary" title="Redefinir senha" data-click="redefinirSenhaUsuario(${u.id_usuario})"><i class="fi fi-rr-key"></i></button>
           </div>
         </td>
       </tr>`,
@@ -573,12 +573,12 @@ function renderDoadorTable() {
       <td>${esc(d.email)}</td>
       <td>${esc(d.telefone)}</td>
       <td class="text-center">
-        <button type="button" class="btn btn-link p-0" title="Ver doações deste doador" onclick="abrirDoacoesDoador(${d.id_doador})">${totalDoacoes}</button>
+        <button type="button" class="btn btn-link p-0" title="Ver doações deste doador" data-click="abrirDoacoesDoador(${d.id_doador})">${totalDoacoes}</button>
       </td>
       <td class="actions-td">
         <div class="actions-content">
           ${d.email ? `<a href="mailto:${esc(d.email)}" class="btn btn-outline-primary" title="Enviar e-mail para ${esc(d.nome)}"><i class="fi fi-rr-envelope"></i></a>` : ""}
-          <button type="button" class="btn btn-outline-secondary" title="Copiar mensagem de lembrete" onclick="copiarMensagemLembrete(${d.id_doador})"><i class="fi fi-rr-clipboard"></i></button>
+          <button type="button" class="btn btn-outline-secondary" title="Copiar mensagem de lembrete" data-click="copiarMensagemLembrete(${d.id_doador})"><i class="fi fi-rr-clipboard"></i></button>
           <primary-button icon="fi fi-rr-pencil" className="btn btn-outline-secondary" data-onclick="updateDoador(${d.id_doador})"></primary-button>
           ${botaoExcluir(`deleteDoador(${d.id_doador})`)}
         </div>
@@ -1699,7 +1699,7 @@ function toggleSenhaBtn() {
 //   iconId,
 // }) {
 //   return `
-//     <button type="button" ${title ? `title="${title}"` : ""} class="${className}" ${onClick ? `onclick="${onClick}"` : ""}>
+//     <button type="button" ${title ? `title="${title}"` : ""} class="${className}" ${onClick ? `data-click="${esc(onClick)}"` : ""}>
 //         ${icon ? `<i ${iconId ? `id="${iconId}"` : ""} class="${icon}"></i>` : ""}
 //         ${label}
 //     </button>
@@ -1718,7 +1718,7 @@ function primaryButton({
   disabled,
 }) {
   return `
-    <button type="button" ${id ? `id="${id}"` : ""} ${title ? `title="${title}"` : ""} class="${className}" ${onClick ? `onclick="${onClick}"` : ""} ${disabled ? "disabled" : ""}>
+    <button type="button" ${id ? `id="${id}"` : ""} ${title ? `title="${title}"` : ""} class="${className}" ${onClick ? `data-click="${esc(onClick)}"` : ""} ${disabled ? "disabled" : ""}>
         ${icon ? `<i ${iconId ? `id="${iconId}"` : ""} class="${icon}${label ? " me-1" : ""}"></i>` : ""}
         ${label ? `<span class="">${label}</span>` : ""}
     </button>
@@ -1770,6 +1770,72 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     painel.querySelector(".btn-block button, button.btn-block")?.click();
   }
+});
+
+// --------------
+// AÇÕES DOS BOTÕES (sem JavaScript inline)
+// A política de segurança (CSP) do programa proíbe onclick="..." no HTML.
+// Os elementos usam data-click / data-change / data-input com o texto "funcao(arg1, 'arg2')".
+// Este despachante só executa funções da lista abaixo e só aceita argumentos simples
+// (número, texto entre aspas, this.checked, this.value). Nada é avaliado como código.
+// --------------
+const ACOES_PERMITIDAS = new Set([
+  "abrirDoacoesDoador", "abrirModalUsuario", "addDoacao", "addDoador", "addInteracaoNova",
+  "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
+  "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
+  "exportarBackupCompleto", "exportarCSV", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
+  "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
+  "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",
+  "updateDoador", "updateInteracaoNova", "verChaveRecuperacao", "viewSenha",
+]);
+
+function lerArgumentos(texto, elemento) {
+  const args = [];
+  const re = /\s*('([^']*)'|"([^"]*)"|-?\d+(?:\.\d+)?|this\.checked|this\.value)\s*(,|$)/y;
+  let pos = 0;
+  if (!texto.trim()) return args;
+  while (pos < texto.length) {
+    re.lastIndex = pos;
+    const m = re.exec(texto);
+    if (!m || m[0] === "") throw new Error("Argumento não permitido: " + texto);
+    const bruto = m[1];
+    if (bruto === "this.checked") args.push(elemento.checked);
+    else if (bruto === "this.value") args.push(elemento.value);
+    else if (m[2] !== undefined) args.push(m[2]);
+    else if (m[3] !== undefined) args.push(m[3]);
+    else args.push(Number(bruto));
+    pos = re.lastIndex;
+  }
+  return args;
+}
+
+function executarAcao(expressao, elemento) {
+  const m = /^\s*([A-Za-z_]\w*)\s*\(([\s\S]*)\)\s*;?\s*$/.exec(expressao || "");
+  const nome = m && m[1];
+  if (!nome || !ACOES_PERMITIDAS.has(nome) || typeof window[nome] !== "function") {
+    console.warn("Ação bloqueada:", expressao);
+    return;
+  }
+  try {
+    return window[nome](...lerArgumentos(m[2], elemento));
+  } catch (erro) {
+    console.error("Falha na ação", expressao, erro);
+  }
+}
+
+[
+  ["click", "data-click"],
+  ["change", "data-change"],
+  ["input", "data-input"],
+].forEach(([evento, atributo]) => {
+  document.addEventListener(evento, (e) => {
+    const alvo = e.target.closest(`[${atributo}]`);
+    if (!alvo) return;
+    // Links "#" só disparam a ação (não mudam o endereço da página)
+    if (alvo.tagName === "A" && alvo.getAttribute("href") === "#") e.preventDefault();
+    executarAcao(alvo.getAttribute(atributo), alvo);
+  });
 });
 
 iniciarSistema();
