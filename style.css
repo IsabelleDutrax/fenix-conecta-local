@@ -613,3 +613,23 @@ button.btn-block:disabled {
     padding: 75px 15px 15px;
   }
 }
+.status-backup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  margin-bottom: 10px;
+}
+.status-backup:empty {
+  display: none;
+}
+.status-backup.status-ok {
+  color: #198754;
+}
+.status-backup.status-atencao {
+  color: #b26a00;
+}
+.status-backup.status-erro {
+  color: #dc3545;
+  font-weight: bold;
+}

@@ -14,12 +14,26 @@ const MIGRACOES = require("./migracoes");
  * @param {string} chave segredo (texto). Nunca vazio.
  */
 function abrirBanco(arquivo, chave) {
+  fs.mkdirSync(path.dirname(arquivo), { recursive: true });
+  const db = abrirCifrado(arquivo, chave);
+
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+  db.pragma("busy_timeout = 5000");
+
+  aplicarMigracoes(db);
+  return db;
+}
+
+/**
+ * Abre um arquivo cifrado e confere a chave, sem aplicar migrações nem mudar o modo de diário.
+ * Usado também para conferir cópias de backup.
+ */
+function abrirCifrado(arquivo, chave, opcoes = {}) {
   if (!chave || typeof chave !== "string") {
     throw new Error("Chave do banco ausente.");
   }
-  fs.mkdirSync(path.dirname(arquivo), { recursive: true });
-
-  const db = new Database(arquivo);
+  const db = new Database(arquivo, opcoes);
   try {
     db.pragma(`cipher='sqlcipher'`);
     db.pragma(`legacy=4`);
@@ -33,12 +47,6 @@ function abrirBanco(arquivo, chave) {
     e.code = "CHAVE_INVALIDA";
     throw e;
   }
-
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
-  db.pragma("busy_timeout = 5000");
-
-  aplicarMigracoes(db);
   return db;
 }
 
@@ -72,4 +80,6 @@ function versaoAtual(db) {
   return db.prepare("SELECT coalesce(max(versao), 0) FROM schema_migrations").pluck().get();
 }
 
-module.exports = { abrirBanco, aplicarMigracoes, versaoAtual };
+const VERSAO_ESQUEMA = Math.max(...MIGRACOES.map((m) => m.versao));
+
+module.exports = { abrirBanco, abrirCifrado, aplicarMigracoes, versaoAtual, VERSAO_ESQUEMA };

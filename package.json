@@ -24,6 +24,7 @@
     "sweetalert2": "11.26.25"
   },
   "dependencies": {
-    "better-sqlite3-multiple-ciphers": "13.2.0"
+    "better-sqlite3-multiple-ciphers": "13.2.0",
+    "write-excel-file": "4.1.1"
   }
 }

@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Documento | PLANO.md |
-| Revisão | 03 |
+| Revisão | 04 |
 | Data | 23/11/2026 |
 | Responsável | Isabelle Dutra |
 | Origem | Fork local de `IsabelleDutrax/sistema-mvp-ong-fenix` (histórico preservado; remote `upstream` somente leitura) |
@@ -20,7 +20,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | **Por quê** | O cliente exige que os dados sensíveis fiquem só na máquina dele. O usuário final não é técnico. |
 | **Onde** | PC Windows do cliente. Programa em `Arquivos de Programas`; dados em `%APPDATA%\FenixConecta\dados`. |
 | **Quem** | Desenvolvimento: Isabelle Dutra (com suporte de IA). Uso: equipe da ONG (admin + usuários comuns). |
-| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fase 4 em 23/11/2026. Datas das fases 5 a 7 a definir com a responsável. |
+| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026. Datas das fases 6 e 7 a definir com a responsável. |
 | **Como** | Electron + SQLite criptografado (`better-sqlite3-multiple-ciphers`, esquema SQLCipher v4), IPC com `contextIsolation`, instalador `.exe` com atualização via GitHub Releases. |
 | **Quanto** | Sem custo de licença (bibliotecas MIT). Custo de assinatura de código do instalador: precisa de validação (ver decisões em aberto). |
 
@@ -32,7 +32,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | 2 Banco local | SQLite criptografado com as 3 tabelas e migrações versionadas. Camada de dados (`src/dados`) acessada por IPC seguro (`window.dados`). Supabase removido. | CRUD das 3 entidades funciona; dados persistem após reiniciar; arquivo ilegível sem a chave; testes automáticos passam. | Concluída |
 | 3 Login local | Tabela `usuario` (migração 2), senha com hash scrypt, níveis de acesso (admin = 99, comum = 1), tela de primeiro acesso que cria o admin e mostra a **chave de recuperação** para imprimir, tela de recuperação, gestão de usuários e troca de senha. Regras de acesso no processo principal. | Login sem internet; usuário comum não vê funções de admin. | Concluída |
 | 4 Offline | Bibliotecas e fonte embutidas em `vendor/` (`npm run vendor`, versões fixas, licenças incluídas). CSP restritiva (sem script inline, sem eval, sem internet). Handlers `onclick` trocados por despachante com lista branca. Rede bloqueada no processo principal (só arquivos do programa). Crédito Flaticon no rodapé. | App funciona com a rede desligada. | Concluída |
-| 5 Excel e backup | Exportar Excel (cópia de consulta com data no nome + aviso LGPD). Backup criptografado diário na pasta do OneDrive (retenção 30 dias), aviso semanal de pendrive, botão "Restaurar backup", rodapé "Último backup". | Backup gerado, restaurado e verificado em teste. | Pendente |
+| 5 Excel e backup | Exportar Excel (cópia de consulta com data no nome + aviso LGPD). Backup criptografado diário na pasta do OneDrive (retenção 30 dias), aviso semanal de pendrive, botão "Restaurar backup", rodapé "Último backup". | Backup gerado, restaurado e verificado em teste. | Concluída — detalhes abaixo |
 | 6 Instalador e atualização | `electron-builder` (NSIS `.exe`) + `electron-updater` via GitHub Releases. | Instalar, atualizar e desinstalar sem perder dados. | Pendente |
 | 7 Testes e manual | Testes de ponta a ponta, manual ilustrado para usuário não técnico, checklist de entrega. | Manual revisado; testes verdes. | Pendente |
 
@@ -60,12 +60,27 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 3. **Check**: testes automáticos (`npm test`) + teste manual com dados fictícios.
 4. **Act**: registrar pendências e decisões no relatório da fase; ajustar o plano.
 
+## Fase 5 — como ficou
+
+| Item | Comportamento |
+|---|---|
+| Backup automático | Uma vez por dia (primeiro uso do dia, inclusive logo após o primeiro acesso). Cópia do arquivo já cifrado, conferida (chave + integridade) antes de ir para o destino. Nome `fenix-backup-AAAA-MM-DD_HHMMSS.fenixbak`. |
+| Pasta | `%OneDrive%\Backup Fenix Conecta`. Sem OneDrive: `Documentos\Backup Fenix Conecta`. O administrador pode escolher outra pasta. |
+| Retenção | Apaga backups com mais de 30 dias; nunca apaga o mais recente nem arquivos com outro nome. |
+| Pendrive | Lembrete semanal ao administrador ("Copiar agora" / "Lembrar amanhã"). Avisa se a pasta escolhida está no disco do próprio computador. |
+| Restaurar | Somente administrador, com senha. Mostra resumo (data e quantidades), faz cópia de segurança dos dados atuais antes e volta atrás se algo falhar. Backup de outro computador pede a chave de recuperação dele. |
+| Rodapé | "Último backup: data/hora" (verde), atrasado há mais de 2 dias (laranja) ou "Backup com problema" (vermelho). Visível para todos. |
+| Excel | Somente administrador. Aviso LGPD antes de gerar. Nome `Fenix Conecta - consulta - DD-MM-AAAA.xlsx`. Aba LEIA-ME com aviso de dados pessoais e "alterações não voltam para o sistema"; abas Doadores, Doações, Interações. |
+| Removido | Botão "Backup completo" (JSON sem criptografia) do Dashboard. |
+
 ## Decisões em aberto
 
 1. ~~Nome do repositório~~: resolvido em 17/11/2026 — `IsabelleDutrax/fenix-conecta-local` (público).
 2. ~~Histórico herdado~~: resolvido em 17/11/2026 — histórico reescrito sem chaves, URLs do Supabase, e-mail pessoal e senha de teste. **Ação pendente da responsável:** revogar a chave no painel do Supabase (o repositório original ainda a expõe).
 3. ~~Permissões do usuário comum~~: resolvido em 17/11/2026 — o usuário comum cadastra e edita; **só o administrador exclui** doadores, doações e interações (bloqueado também no processo principal). Gestão de usuários e chave de recuperação: só administrador.
-4. **Valor monetário** armazenado como `REAL` (paridade com o sistema atual). Alternativa mais precisa: centavos em `INTEGER` — avaliar na fase 5 (Excel).
+4. **Valor monetário** armazenado como `REAL` (paridade com o sistema atual). Na fase 5 o Excel formata como moeda (R$ 0,00) e não houve diferença nos testes. Manter `REAL`; reavaliar só se surgirem somas com centavos incorretos.
+6. **Excel só para administrador** (decisão da fase 5, por conter todos os dados pessoais). Validar com o cliente.
+7. **Exportar CSV/PDF por tabela** (herdado do sistema web) continua disponível a todos e gera arquivo sem criptografia, sem aviso LGPD. Opções: (a) manter; (b) restringir ao administrador e incluir o mesmo aviso do Excel. Recomendado: (b).
 5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação.
 
 ---

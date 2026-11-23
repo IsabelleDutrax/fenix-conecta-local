@@ -24,6 +24,24 @@ contextBridge.exposeInMainWorld("sessao", {
   alterarMinhaSenha: chamar("sessao:alterarMinhaSenha"),
 });
 
+contextBridge.exposeInMainWorld("backup", {
+  status: chamar("backup:status"),
+  fazerAgora: chamar("backup:fazerAgora"),
+  copiarPendrive: chamar("backup:copiarPendrive"),
+  adiarLembrete: chamar("backup:adiarLembrete"),
+  escolherPasta: chamar("backup:escolherPasta"),
+  usarPastaPadrao: chamar("backup:usarPastaPadrao"),
+  abrirPasta: chamar("backup:abrirPasta"),
+  listar: chamar("backup:listar"),
+  analisarDaLista: chamar("backup:analisarDaLista"),
+  analisarArquivo: chamar("backup:analisarArquivo"),
+  informarChave: chamar("backup:informarChave"),
+  cancelarRestauracao: chamar("backup:cancelarRestauracao"),
+  confirmarRestauracao: chamar("backup:confirmarRestauracao"),
+  exportarExcel: chamar("exportar:excel"),
+  mostrarExcel: chamar("exportar:mostrarExcel"),
+});
+
 contextBridge.exposeInMainWorld("usuarios", {
   listar: chamar("usuarios:listar"),
   criar: chamar("usuarios:criar"),
