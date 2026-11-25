@@ -103,6 +103,12 @@ async function verificarInstalacao({ pasta, temporaria }, { bloquearRede, regist
     });
   }
 
+  await tentar("manual do usuário incluído", async () => {
+    const { caminhoManual } = require("./atualizacao");
+    const arquivo = caminhoManual();
+    return fs.existsSync(arquivo) && fs.statSync(arquivo).size > 100000 ? path.basename(arquivo) : false;
+  });
+
   await tentar("módulo de atualização automática", async () => {
     require("electron-updater");
     return true;

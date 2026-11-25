@@ -677,6 +677,12 @@ function mostrarAvisoAtualizacao(versao) {
 
 aplicativo.aoAtualizacaoPronta(({ versao }) => mostrarAvisoAtualizacao(versao));
 
+async function abrirManual() {
+  fecharMenuMobile();
+  const { error } = await aplicativo.abrirManual();
+  if (error) aviso("error", "Não foi possível abrir o manual", error.message);
+}
+
 async function instalarAtualizacao() {
   const r = await Swal.fire({
     title: "Instalar atualização agora?",
@@ -2079,7 +2085,7 @@ const ACOES_PERMITIDAS = new Set([
   "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
   "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
   "exportarCSV", "exportarExcel", "fazerBackupAgora", "abrirPastaBackup", "escolherPastaBackup",
-  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "abrirManual", "exportarPDF", "fecharMenuMobile", "imprimirChave",
   "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
   "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
   "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",

@@ -137,3 +137,13 @@ input {
         margin: 0;
     }
 }
+// Janelas do SweetAlert2 com campos (senha, chave): sem barra de rolagem horizontal.
+// O contorno de foco dos campos (box-shadow) ultrapassava a largura e criava a barra.
+.swal2-html-container {
+    overflow-x: hidden;
+
+    .form-control {
+        width: 100%;
+        max-width: 100%;
+    }
+}

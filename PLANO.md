@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Documento | PLANO.md |
-| Revisão | 05 |
+| Revisão | 06 |
 | Data | 25/11/2026 |
 | Responsável | Isabelle Dutra |
 | Origem | Fork local de `IsabelleDutrax/sistema-mvp-ong-fenix` (histórico preservado; remote `upstream` somente leitura) |
@@ -20,7 +20,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | **Por quê** | O cliente exige que os dados sensíveis fiquem só na máquina dele. O usuário final não é técnico. |
 | **Onde** | PC Windows do cliente. Programa em `Arquivos de Programas`; dados em `%APPDATA%\FenixConecta\dados`. |
 | **Quem** | Desenvolvimento: Isabelle Dutra (com suporte de IA). Uso: equipe da ONG (admin + usuários comuns). |
-| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026; fase 6 em 25/11/2026. Data da fase 7 a definir com a responsável. |
+| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026; fases 6 e 7 em 25/11/2026. Versão de entrega: 1.0.0 (publicação aguarda autorização). |
 | **Como** | Electron + SQLite criptografado (`better-sqlite3-multiple-ciphers`, esquema SQLCipher v4), IPC com `contextIsolation`, instalador `.exe` com atualização via GitHub Releases. |
 | **Quanto** | Sem custo de licença (bibliotecas MIT). Custo de assinatura de código do instalador: precisa de validação (ver decisões em aberto). |
 
@@ -34,7 +34,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | 4 Offline | Bibliotecas e fonte embutidas em `vendor/` (`npm run vendor`, versões fixas, licenças incluídas). CSP restritiva (sem script inline, sem eval, sem internet). Handlers `onclick` trocados por despachante com lista branca. Rede bloqueada no processo principal (só arquivos do programa). Crédito Flaticon no rodapé. | App funciona com a rede desligada. | Concluída |
 | 5 Excel e backup | Exportar Excel (cópia de consulta com data no nome + aviso LGPD). Backup criptografado diário na pasta do OneDrive (retenção 30 dias), aviso semanal de pendrive, botão "Restaurar backup", rodapé "Último backup". | Backup gerado, restaurado e verificado em teste. | Concluída — detalhes abaixo |
 | 6 Instalador e atualização | `electron-builder` (NSIS `.exe`) + `electron-updater` via GitHub Releases. | Instalar, atualizar e desinstalar sem perder dados. | Concluída — detalhes abaixo (publicação da 1ª versão aguarda autorização) |
-| 7 Testes e manual | Testes de ponta a ponta, manual ilustrado para usuário não técnico, checklist de entrega. | Manual revisado; testes verdes. | Pendente |
+| 7 Testes e manual | Testes de ponta a ponta, manual ilustrado para usuário não técnico, checklist de entrega. | Manual revisado; testes verdes. | Concluída — detalhes abaixo |
 
 ## Arquitetura (após fase 2)
 
@@ -84,6 +84,16 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 | Chave do banco | Migrada para a API assíncrona do `safeStorage` (a síncrona ficou obsoleta no Electron 45). Compatível com chaves já gravadas. |
 | Autoteste | `"Fenix Conecta.exe" --verificar-instalacao --saida=<arquivo.json>`: confere chave, banco cifrado, migrações, backup, Excel, telas offline e canais, numa pasta temporária (nunca usa dados reais nem o OneDrive). |
 | Versão | Exibida no rodapé do login e do menu. |
+
+## Fase 7 — como ficou
+
+| Item | Entrega |
+|---|---|
+| Testes de ponta a ponta | `npm run test:e2e`: 5 cenários (cadastro, login/recuperação, exclusão, offline/CSP, backup/Excel), 119 verificações no programa real, em pastas temporárias isoladas. Somados aos 50 testes de `npm test`. |
+| Manual do usuário | `docs/Manual-Fenix-Conecta.pdf` (MAN-FC-001 rev. 00, 25 páginas, 21 telas com dados fictícios). Fonte em `docs/manual/manual.html`; `npm run manual` recaptura as telas e refaz o PDF. Incluído no instalador e aberto pelo botão **Ajuda (manual)**. |
+| Checklist de entrega | `docs/CHECKLIST-ENTREGA.md` (CHK-FC-001 rev. 00): antes da visita, instalação, primeiro acesso com a ONG, configuração, treinamento, conferência e acompanhamento de 30 dias. |
+| Correções encontradas | Itens de admin e aviso de atualização apareciam na tela mesmo escondidos (CSS); valores em R$ sem formato brasileiro; barra de rolagem na janela de senha. Testes passaram a conferir a visibilidade real. |
+| Versão | 1.0.0 (`dist\Fenix-Conecta-Setup-1.0.0.exe`). |
 
 ## Decisões em aberto
 

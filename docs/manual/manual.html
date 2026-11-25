@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Manual do usuário — Fênix Conecta</title>
+<style>
+  @page { size: A4; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #222; margin: 0; }
+  h1, h2, h3 { color: #111; line-height: 1.2; }
+  h1 { font-size: 26pt; margin: 0 0 6pt; }
+  h2 { font-size: 16pt; margin: 0 0 8pt; padding-bottom: 4pt; border-bottom: 3px solid #FF5722; page-break-before: always; }
+  h3 { font-size: 12pt; margin: 14pt 0 4pt; }
+  h3, figure + p { page-break-after: avoid; break-after: avoid; }
+  h3 + ol, h3 + ul, h3 + p { page-break-before: avoid; break-before: avoid; }
+  p { margin: 4pt 0 6pt; }
+  ol, ul { margin: 4pt 0 8pt; padding-left: 20pt; }
+  li { margin: 2pt 0; }
+  figure { margin: 8pt 0 12pt; text-align: center; page-break-inside: avoid; }
+  figure img { width: 100%; max-width: 16.5cm; border: 1px solid #ccc; border-radius: 4px; }
+  figure.media img { max-width: 12.5cm; }
+  figcaption { font-size: 8.5pt; color: #555; margin-top: 3pt; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #bbb; padding: 4pt 6pt; text-align: left; vertical-align: top; font-size: 9.5pt; }
+  th { background: #FFE0D6; }
+  .capa { height: 25.5cm; display: flex; flex-direction: column; justify-content: center; }
+  .capa .logo { width: 3.2cm; height: 3.2cm; border-radius: 50%; border: 1px solid #111; background: #fff url("../../img/Logo_fundo_branco.png") center / contain no-repeat; margin-bottom: 14pt; }
+  .capa .sub { font-size: 14pt; color: #555; margin-bottom: 24pt; }
+  .sgq td:first-child { width: 4.5cm; font-weight: bold; background: #f7f7f7; }
+  .aviso { border-left: 5px solid #FF5722; background: #FFF4EF; padding: 6pt 10pt; margin: 8pt 0; page-break-inside: avoid; }
+  .aviso.vermelho { border-color: #C00000; background: #FDECEC; }
+  .aviso.verde { border-color: #198754; background: #EDF7F1; }
+  .aviso strong:first-child { display: block; margin-bottom: 2pt; }
+  .admin { display: inline-block; background: #111; color: #fff; font-size: 8pt; padding: 1pt 5pt; border-radius: 3pt; vertical-align: middle; }
+  .sumario ol { padding-left: 16pt; }
+  .sumario li { margin: 3pt 0; }
+  kbd { border: 1px solid #999; border-radius: 3px; padding: 0 3pt; font-family: inherit; font-size: 9pt; background: #f4f4f4; }
+  .rodape-ia { margin-top: 24pt; font-size: 9pt; color: #555; border-top: 1px solid #ccc; padding-top: 6pt; }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<section class="capa">
+  <div class="logo"></div>
+  <h1>Fênix Conecta</h1>
+  <div class="sub">Manual do usuário — programa de gestão de doações (versão local)</div>
+  <table class="sgq">
+    <tr><td>Código</td><td>MAN-FC-001</td></tr>
+    <tr><td>Revisão</td><td>00</td></tr>
+    <tr><td>Data</td><td>25/11/2026</td></tr>
+    <tr><td>Responsável</td><td>Isabelle Dutra</td></tr>
+    <tr><td>Versão do programa</td><td>1.0.0 ou mais nova</td></tr>
+    <tr><td>Público</td><td>Equipe da ONG. Os itens marcados com <span class="admin">ADMIN</span> são só para o administrador.</td></tr>
+  </table>
+  <p style="font-size:9pt;color:#555;margin-top:18pt">As telas deste manual usam dados fictícios (nomes "Exemplo", CPF 000.000.000-00).</p>
+</section>
+
+<!-- SUMÁRIO -->
+<section class="sumario">
+  <h2>Sumário</h2>
+  <ol>
+    <li>Antes de começar</li>
+    <li>Instalar o programa</li>
+    <li>Primeiro acesso <span class="admin">ADMIN</span></li>
+    <li>Entrar e sair</li>
+    <li>Tela inicial (Dashboard)</li>
+    <li>Doadores</li>
+    <li>Doações</li>
+    <li>Interações</li>
+    <li>Exportar tabelas (CSV e PDF)</li>
+    <li>Usuários <span class="admin">ADMIN</span></li>
+    <li>Backup <span class="admin">ADMIN</span></li>
+    <li>Planilha Excel de consulta <span class="admin">ADMIN</span></li>
+    <li>Alterar minha senha</li>
+    <li>Atualizações do programa</li>
+    <li>Recuperar os dados em outro computador <span class="admin">ADMIN</span></li>
+    <li>Problemas comuns</li>
+  </ol>
+</section>
+
+<!-- 1 -->
+<section>
+  <h2>1. Antes de começar</h2>
+  <p>O Fênix Conecta guarda os doadores, as doações e as interações da ONG.</p>
+  <ul>
+    <li>O programa funciona <strong>sem internet</strong>.</li>
+    <li>Os dados ficam <strong>só neste computador</strong>, em um arquivo protegido por criptografia.</li>
+    <li>Todas as pessoas que usam este computador veem os <strong>mesmos dados</strong>. Cada pessoa entra com o próprio e-mail e senha.</li>
+    <li>Se o programa for instalado em <strong>outro</strong> computador, aquele computador terá dados separados.</li>
+  </ul>
+  <p>Para abrir este manual no programa, clique em <strong>Ajuda (manual)</strong> no menu ou em <strong>Ajuda: manual do usuário</strong> na tela de entrada.</p>
+  <h3>Tipos de usuário</h3>
+  <table>
+    <tr><th>Função</th><th>Usuário comum</th><th>Administrador</th></tr>
+    <tr><td>Cadastrar e editar doadores, doações e interações</td><td>Sim</td><td>Sim</td></tr>
+    <tr><td>Excluir registros</td><td>Não</td><td>Sim</td></tr>
+    <tr><td>Exportar tabelas em CSV e PDF</td><td>Sim</td><td>Sim</td></tr>
+    <tr><td>Criar usuários e redefinir senhas</td><td>Não</td><td>Sim</td></tr>
+    <tr><td>Backup, pendrive e restaurar backup</td><td>Não (vê o status do backup)</td><td>Sim</td></tr>
+    <tr><td>Planilha Excel de consulta</td><td>Não</td><td>Sim</td></tr>
+    <tr><td>Ver a chave de recuperação</td><td>Não</td><td>Sim</td></tr>
+  </table>
+  <div class="aviso vermelho">
+    <strong>Dados pessoais (LGPD)</strong>
+    O sistema tem CPF, CNPJ, telefone, e-mail e endereço dos doadores. Não envie estes dados por e-mail, WhatsApp ou redes sociais. Não deixe o computador aberto sem ninguém: clique em <em>Sair</em> ao terminar.
+  </div>
+</section>
+
+<!-- 2 -->
+<section>
+  <h2>2. Instalar o programa</h2>
+  <p>Faça a instalação uma vez em cada computador. Não é necessária a senha de administrador do Windows.</p>
+  <ol>
+    <li>Abra o arquivo <strong>Fenix-Conecta-Setup-&lt;versão&gt;.exe</strong> (recebido por link ou pendrive).</li>
+    <li>Se o Windows mostrar <em>"O Windows protegeu o computador"</em>, clique em <strong>Mais informações</strong>.</li>
+    <li>Clique em <strong>Executar assim mesmo</strong>.</li>
+    <li>Aguarde a instalação (cerca de 1 minuto). O programa abre sozinho no fim.</li>
+  </ol>
+  <p>Depois, abra o programa pelo atalho <strong>Fênix Conecta</strong> na área de trabalho ou no menu Iniciar.</p>
+  <div class="aviso">
+    <strong>Por que aparece o aviso do Windows?</strong>
+    O instalador ainda não tem assinatura digital. O aviso não indica vírus. Instale só arquivos recebidos da responsável pelo sistema.
+  </div>
+  <div class="aviso verde">
+    <strong>Desinstalar não apaga os dados</strong>
+    Se for preciso desinstalar (Configurações do Windows → Aplicativos → Fênix Conecta), os dados e os backups continuam no computador.
+  </div>
+</section>
+
+<!-- 3 -->
+<section>
+  <h2>3. Primeiro acesso <span class="admin">ADMIN</span></h2>
+  <p>Na primeira vez, o programa pede o cadastro do <strong>administrador</strong>. Faça este passo com a pessoa responsável pela ONG. Não use dados de terceiros.</p>
+  <ol>
+    <li>Digite o <strong>nome</strong>, o <strong>e-mail</strong> e a <strong>senha</strong> (no mínimo 8 caracteres).</li>
+    <li>Digite a senha de novo em <strong>Repita a senha</strong>.</li>
+    <li>Clique em <strong>Criar administrador</strong>.</li>
+  </ol>
+  <figure><img src="img/01-primeiro-acesso.png"><figcaption>Figura 1 — Primeiro acesso: cadastro do administrador.</figcaption></figure>
+
+  <h3>Chave de recuperação</h3>
+  <p>Depois do cadastro, o programa mostra a <strong>chave de recuperação</strong>. Ela abre os dados se o Windows for reinstalado ou se o computador for trocado.</p>
+  <ol>
+    <li>Clique em <strong>Imprimir</strong> e imprima a folha da chave.</li>
+    <li>Guarde a folha em local seguro, <strong>longe do computador</strong> (por exemplo, no cofre ou no arquivo da diretoria).</li>
+    <li>Marque <strong>"Imprimi (ou anotei) a chave e guardei em local seguro"</strong>.</li>
+    <li>Clique em <strong>Continuar</strong>.</li>
+  </ol>
+  <figure class="media"><img src="img/02-chave-recuperacao.png"><figcaption>Figura 2 — Chave de recuperação: imprimir e guardar.</figcaption></figure>
+  <div class="aviso vermelho">
+    <strong>Sem a chave, os dados podem ser perdidos</strong>
+    Não tire foto da chave e não envie a chave por mensagem. Quem tiver a chave e uma cópia dos dados consegue ler os dados. O administrador pode ver a chave de novo no menu <em>Chave de recuperação</em> (pede a senha).
+  </div>
+</section>
+
+<!-- 4 -->
+<section>
+  <h2>4. Entrar e sair</h2>
+  <ol>
+    <li>Abra o programa.</li>
+    <li>Digite seu <strong>e-mail</strong> e sua <strong>senha</strong>.</li>
+    <li>Clique em <strong>Entrar</strong> (ou aperte <kbd>Enter</kbd>).</li>
+  </ol>
+  <figure class="media"><img src="img/03-login.png"><figcaption>Figura 3 — Tela de entrada. O ícone de olho mostra a senha digitada.</figcaption></figure>
+  <ul>
+    <li>Para sair, clique em <strong>Sair</strong>, no fim do menu à esquerda.</li>
+    <li>Depois de <strong>5 senhas erradas seguidas</strong>, o programa espera 30 segundos antes de aceitar outra tentativa.</li>
+    <li>Esqueceu a senha? Peça ao administrador para <strong>redefinir a senha</strong> (capítulo 10).</li>
+  </ul>
+</section>
+
+<!-- 5 -->
+<section>
+  <h2>5. Tela inicial (Dashboard)</h2>
+  <p>A tela inicial mostra os totais: valor arrecadado, número de doadores, de doações e de interações.</p>
+  <ul>
+    <li>Escolha o período do total arrecadado na lista abaixo do valor (última semana, mês, bimestre, trimestre, semestre, ano ou todo o período).</li>
+    <li>Use o menu à esquerda para abrir as outras telas.</li>
+    <li>No fim do menu aparece o <strong>Último backup</strong> (capítulo 11).</li>
+  </ul>
+  <figure><img src="img/04-dashboard.png"><figcaption>Figura 4 — Dashboard (visão do administrador).</figcaption></figure>
+</section>
+
+<!-- 6 -->
+<section>
+  <h2>6. Doadores</h2>
+  <figure><img src="img/05-doadores.png"><figcaption>Figura 5 — Lista de doadores. Clique no título de uma coluna para ordenar.</figcaption></figure>
+  <h3>Cadastrar um doador</h3>
+  <ol>
+    <li>Clique em <strong>Doadores</strong> no menu.</li>
+    <li>Clique em <strong>Novo Doador +</strong>.</li>
+    <li>Preencha o <strong>nome</strong> (obrigatório) e os outros campos que tiver.</li>
+    <li>Clique em <strong>Salvar</strong>.</li>
+  </ol>
+  <figure class="media"><img src="img/06-novo-doador.png"><figcaption>Figura 6 — Novo doador.</figcaption></figure>
+  <p>O programa confere os dados antes de salvar:</p>
+  <ul>
+    <li>Telefone com DDD: 10 ou 11 números.</li>
+    <li>CPF com 11 números ou CNPJ com 14 números.</li>
+    <li>E-mail no formato nome@provedor.com.</li>
+  </ul>
+  <h3>Botões de cada doador</h3>
+  <table>
+    <tr><th>Botão</th><th>O que faz</th></tr>
+    <tr><td>Número na coluna Doações</td><td>Mostra as doações deste doador.</td></tr>
+    <tr><td>Envelope</td><td>Abre o programa de e-mail do computador com o endereço do doador.</td></tr>
+    <tr><td>Prancheta</td><td>Copia uma mensagem pronta de agradecimento. Cole a mensagem onde quiser.</td></tr>
+    <tr><td>Lápis</td><td>Edita os dados do doador.</td></tr>
+    <tr><td>Lixeira <span class="admin">ADMIN</span></td><td>Exclui o doador. Só funciona se o doador não tiver doações nem interações.</td></tr>
+  </table>
+</section>
+
+<!-- 7 -->
+<section>
+  <h2>7. Doações</h2>
+  <figure><img src="img/07-doacoes.png"><figcaption>Figura 7 — Lista de doações. O relógio vermelho indica data futura (doação prometida).</figcaption></figure>
+  <h3>Registrar uma doação</h3>
+  <ol>
+    <li>Clique em <strong>Doações</strong> no menu.</li>
+    <li>Clique em <strong>Nova Doação +</strong>.</li>
+    <li>Escolha o <strong>doador</strong>. Digite parte do nome para procurar.</li>
+    <li>Digite o <strong>valor</strong> (maior que zero) e confira a <strong>data</strong>.</li>
+    <li>Escolha a <strong>forma de pagamento</strong>.</li>
+    <li>Clique em <strong>Salvar</strong>. A doação entra com o status <em>Pendente</em>.</li>
+  </ol>
+  <figure class="media"><img src="img/08-nova-doacao.png"><figcaption>Figura 8 — Nova doação.</figcaption></figure>
+  <h3>Marcar como paga</h3>
+  <ol>
+    <li>Clique no <strong>lápis</strong> da doação.</li>
+    <li>Em <strong>Status</strong>, escolha <em>Pago</em> (ou <em>Não Pago</em>).</li>
+    <li>Clique em <strong>Salvar</strong>.</li>
+  </ol>
+  <p>Para cadastrar uma doação, o doador precisa estar cadastrado (capítulo 6).</p>
+</section>
+
+<!-- 8 -->
+<section>
+  <h2>8. Interações</h2>
+  <p>Interação é qualquer contato com o doador: mensagem, ligação, e-mail, redes sociais ou visita. O programa registra quem cadastrou cada interação.</p>
+  <figure><img src="img/09-interacoes.png"><figcaption>Figura 9 — Lista de interações.</figcaption></figure>
+  <ol>
+    <li>Clique em <strong>Interações</strong> no menu.</li>
+    <li>Clique em <strong>Nova Interação +</strong>.</li>
+    <li>Escolha o <strong>doador</strong> e o <strong>tipo</strong> de contato.</li>
+    <li>Escreva as <strong>observações</strong> (opcional).</li>
+    <li>Confira a <strong>data</strong>. A data não pode ser futura.</li>
+    <li>Clique em <strong>Salvar</strong>.</li>
+  </ol>
+  <figure class="media"><img src="img/10-nova-interacao.png"><figcaption>Figura 10 — Nova interação.</figcaption></figure>
+</section>
+
+<!-- 9 -->
+<section>
+  <h2>9. Exportar tabelas (CSV e PDF)</h2>
+  <ol>
+    <li>Abra a tela (Doadores, Doações ou Interações).</li>
+    <li>Clique em <strong>Exportar</strong>.</li>
+    <li>Escolha <strong>CSV (Excel)</strong> ou <strong>PDF</strong>.</li>
+    <li>Escolha a pasta e clique em <strong>Salvar</strong>.</li>
+  </ol>
+  <figure class="media"><img src="img/20-exportar.png"><figcaption>Figura 11 — Menu Exportar.</figcaption></figure>
+  <div class="aviso vermelho">
+    <strong>O arquivo exportado não tem proteção</strong>
+    CSV e PDF saem sem criptografia. Use só para consulta ou impressão. Apague o arquivo quando terminar. Não envie para fora da ONG.
+  </div>
+</section>
+
+<!-- 10 -->
+<section>
+  <h2>10. Usuários <span class="admin">ADMIN</span></h2>
+  <p>Cada pessoa da equipe deve ter o próprio usuário. Não compartilhe senhas.</p>
+  <figure><img src="img/11-usuarios.png"><figcaption>Figura 12 — Tela Usuários.</figcaption></figure>
+  <h3>Criar um usuário</h3>
+  <ol>
+    <li>Clique em <strong>Usuários</strong> no menu.</li>
+    <li>Clique em <strong>Novo Usuário +</strong>.</li>
+    <li>Digite o nome, o e-mail e uma <strong>senha inicial</strong> (no mínimo 8 caracteres).</li>
+    <li>Escolha o nível: <strong>Usuário comum</strong> ou <strong>Administrador</strong>.</li>
+    <li>Clique em <strong>Salvar</strong>.</li>
+    <li>Entregue a senha inicial à pessoa e peça para ela trocar a senha (capítulo 13).</li>
+  </ol>
+  <figure class="media"><img src="img/12-novo-usuario.png"><figcaption>Figura 13 — Novo usuário.</figcaption></figure>
+  <h3>Outras ações</h3>
+  <ul>
+    <li><strong>Lápis</strong>: muda nome, e-mail ou nível. Desmarque <em>Ativo</em> para bloquear uma pessoa que saiu da ONG.</li>
+    <li><strong>Chave</strong>: define uma nova senha (use quando a pessoa esquecer a senha).</li>
+    <li>O programa não deixa a ONG ficar sem nenhum administrador ativo.</li>
+  </ul>
+  <h3>O que o usuário comum vê</h3>
+  <p>O usuário comum não vê os menus Usuários e Backup, nem os botões de excluir e de Excel.</p>
+  <figure><img src="img/19-usuario-comum.png"><figcaption>Figura 14 — Tela do usuário comum.</figcaption></figure>
+</section>
+
+<!-- 11 -->
+<section>
+  <h2>11. Backup <span class="admin">ADMIN</span></h2>
+  <p>Backup é uma cópia de segurança dos dados. A cópia é protegida por criptografia: só abre com a chave de recuperação.</p>
+  <h3>Backup automático</h3>
+  <ul>
+    <li>O programa faz um backup por dia, quando é aberto pela primeira vez no dia.</li>
+    <li>A cópia vai para a pasta <strong>OneDrive\Backup Fenix Conecta</strong>. Sem OneDrive, vai para <strong>Documentos\Backup Fenix Conecta</strong>.</li>
+    <li>O programa guarda os backups dos <strong>últimos 30 dias</strong> e apaga os mais antigos.</li>
+  </ul>
+  <table>
+    <tr><th>No fim do menu aparece</th><th>Significado</th><th>O que fazer</th></tr>
+    <tr><td style="color:#198754">Último backup: data (verde)</td><td>Tudo certo.</td><td>Nada.</td></tr>
+    <tr><td style="color:#b26a00">Último backup: data (laranja)</td><td>Mais de 2 dias sem backup.</td><td>Abra a tela Backup e clique em <em>Fazer backup agora</em>.</td></tr>
+    <tr><td style="color:#dc3545"><strong>Backup com problema</strong> (vermelho)</td><td>O último backup falhou.</td><td>Veja a mensagem na tela Backup. Confira se o OneDrive está conectado.</td></tr>
+  </table>
+  <figure><img src="img/13-backup.png"><figcaption>Figura 15 — Tela Backup.</figcaption></figure>
+  <h3>Cópia semanal em pendrive</h3>
+  <p>Uma vez por semana, o programa lembra o administrador de fazer uma cópia em pendrive. Esta cópia protege os dados se o computador quebrar ou for roubado.</p>
+  <ol>
+    <li>Conecte o pendrive no computador.</li>
+    <li>No aviso, clique em <strong>Copiar agora</strong> (ou, na tela Backup, clique em <strong>Copiar para pendrive</strong>).</li>
+    <li>Escolha o pendrive e clique em <strong>Selecionar pasta</strong>.</li>
+    <li>Espere a mensagem <em>"Cópia feita!"</em>.</li>
+    <li>Retire o pendrive com segurança e guarde longe do computador.</li>
+  </ol>
+  <figure class="media"><img src="img/14-lembrete-pendrive.png"><figcaption>Figura 16 — Lembrete semanal. "Lembrar amanhã" adia o aviso por 1 dia.</figcaption></figure>
+  <h3>Restaurar um backup</h3>
+  <p>Use só se os dados atuais estiverem errados ou perdidos. A restauração troca <strong>todos</strong> os dados atuais pelos dados do backup.</p>
+  <ol>
+    <li>Abra a tela <strong>Backup</strong>.</li>
+    <li>Na lista, clique em <strong>Restaurar</strong> no backup da data desejada. Para um backup do pendrive, clique em <strong>Restaurar de outro arquivo...</strong></li>
+    <li>Confira a data e as quantidades mostradas.</li>
+    <li>Digite a sua senha de administrador e clique em <strong>Restaurar</strong>.</li>
+    <li>Entre de novo no programa.</li>
+  </ol>
+  <figure class="media"><img src="img/16-restaurar.png"><figcaption>Figura 17 — Confirmação da restauração.</figcaption></figure>
+  <div class="aviso verde">
+    <strong>Os dados atuais não se perdem</strong>
+    Antes de restaurar, o programa faz um backup dos dados atuais. Se algo der errado, o programa volta os dados anteriores.
+  </div>
+</section>
+
+<!-- 12 -->
+<section>
+  <h2>12. Planilha Excel de consulta <span class="admin">ADMIN</span></h2>
+  <p>Gera uma planilha com doadores, doações e interações para consulta.</p>
+  <ol>
+    <li>Na tela inicial (Dashboard), clique em <strong>Exportar Excel (consulta)</strong>.</li>
+    <li>Leia o aviso e clique em <strong>Entendi, exportar</strong>.</li>
+    <li>Escolha a pasta e clique em <strong>Salvar</strong>. O nome do arquivo tem a palavra "consulta" e a data.</li>
+  </ol>
+  <figure class="media"><img src="img/15-aviso-excel.png"><figcaption>Figura 18 — Aviso antes de gerar a planilha.</figcaption></figure>
+  <div class="aviso vermelho">
+    <strong>A planilha é só para leitura</strong>
+    Alterações feitas na planilha <strong>não voltam</strong> para o programa. A planilha não tem senha: não envie, não copie para computadores de terceiros e apague o arquivo depois da consulta.
+  </div>
+</section>
+
+<!-- 13 -->
+<section>
+  <h2>13. Alterar minha senha</h2>
+  <ol>
+    <li>No fim do menu, clique em <strong>Alterar minha senha</strong>.</li>
+    <li>Digite a senha atual.</li>
+    <li>Digite a nova senha duas vezes (no mínimo 8 caracteres).</li>
+    <li>Clique em <strong>Salvar</strong>.</li>
+  </ol>
+  <figure class="media"><img src="img/17-alterar-senha.png"><figcaption>Figura 19 — Alterar minha senha.</figcaption></figure>
+  <p>Dica: use uma frase fácil de lembrar e difícil de adivinhar, por exemplo três palavras e um número.</p>
+</section>
+
+<!-- 14 -->
+<section>
+  <h2>14. Atualizações do programa</h2>
+  <ul>
+    <li>Quando o computador tem internet, o programa procura versões novas sozinho.</li>
+    <li>Quando a versão nova está pronta, aparece <strong>"Atualização pronta"</strong> no fim do menu.</li>
+    <li>A atualização é instalada quando você fecha o programa. Para instalar na hora, clique no aviso e em <strong>Instalar agora</strong>.</li>
+    <li>O programa faz um backup antes de instalar. Os dados continuam iguais.</li>
+  </ul>
+  <figure class="media"><img src="img/21-atualizacao-pronta.png"><figcaption>Figura 20 — Aviso de atualização no menu.</figcaption></figure>
+  <p>Sem internet, o programa funciona normalmente. A atualização espera a próxima conexão.</p>
+</section>
+
+<!-- 15 -->
+<section>
+  <h2>15. Recuperar os dados em outro computador <span class="admin">ADMIN</span></h2>
+  <p>Use este procedimento depois de reinstalar o Windows ou para passar os dados para um computador novo.</p>
+  <h3>Mesmo computador, Windows reinstalado</h3>
+  <ol>
+    <li>Instale o programa (capítulo 2) e abra o programa.</li>
+    <li>O programa mostra <em>"Os dados estão protegidos"</em>.</li>
+    <li>Digite a <strong>chave de recuperação</strong> impressa. Letras maiúsculas, minúsculas e espaços não importam.</li>
+    <li>Clique em <strong>Abrir dados</strong> e entre com o seu usuário.</li>
+  </ol>
+  <figure class="media"><img src="img/18-recuperar.png"><figcaption>Figura 21 — Tela de recuperação.</figcaption></figure>
+  <h3>Computador novo</h3>
+  <ol>
+    <li>Instale o programa no computador novo e faça o primeiro acesso (capítulo 3). Este cadastro é provisório.</li>
+    <li>Abra a tela <strong>Backup</strong> e clique em <strong>Restaurar de outro arquivo...</strong></li>
+    <li>Escolha o backup mais recente (do OneDrive ou do pendrive).</li>
+    <li>Digite a <strong>chave de recuperação do computador antigo</strong> quando o programa pedir.</li>
+    <li>Digite a senha do administrador provisório e clique em <strong>Restaurar</strong>.</li>
+    <li>Entre com um usuário do computador antigo. A chave de recuperação passa a ser a do computador antigo.</li>
+  </ol>
+</section>
+
+<!-- 16 -->
+<section>
+  <h2>16. Problemas comuns</h2>
+  <table>
+    <tr><th>Problema</th><th>O que fazer</th></tr>
+    <tr><td>Esqueci a senha.</td><td>Peça ao administrador para redefinir a senha (capítulo 10).</td></tr>
+    <tr><td>O administrador esqueceu a senha e não há outro administrador.</td><td>Fale com a responsável pelo sistema. Por segurança, recomenda-se ter <strong>dois administradores</strong>.</td></tr>
+    <tr><td>"Muitas tentativas. Aguarde 30 segundos."</td><td>Espere 30 segundos e digite a senha com atenção (confira o Caps Lock).</td></tr>
+    <tr><td>"Usuário desativado."</td><td>Peça ao administrador para marcar o usuário como Ativo.</td></tr>
+    <tr><td>"Não é possível excluir" ao excluir um doador.</td><td>O doador tem doações ou interações. Exclua antes as doações e interações dele, ou mantenha o doador.</td></tr>
+    <tr><td>"A data da interação não pode ser no futuro."</td><td>Use a data de hoje ou uma data passada.</td></tr>
+    <tr><td>"Backup com problema" no menu.</td><td>Abra a tela Backup e leia a mensagem. Confira se o OneDrive está conectado (ícone de nuvem perto do relógio do Windows). Clique em <em>Fazer backup agora</em>.</td></tr>
+    <tr><td>O programa pede a chave de recuperação.</td><td>Digite a chave impressa no primeiro acesso (capítulo 15).</td></tr>
+    <tr><td>Aviso "O Windows protegeu o computador" ao instalar.</td><td>Clique em Mais informações → Executar assim mesmo (capítulo 2).</td></tr>
+    <tr><td>O programa já está aberto e não abre outra janela.</td><td>O programa abre só uma vez por computador. Procure a janela na barra de tarefas.</td></tr>
+    <tr><td>Outra pessoa não vê os dados que cadastrei.</td><td>Confira se ela usa o <strong>mesmo computador</strong>. Cada computador tem dados separados.</td></tr>
+  </table>
+  <p class="rodape-ia">Elaborado com suporte de IA — Revisado por Isabelle Dutra</p>
+</section>
+
+</body>
+</html>
