@@ -147,3 +147,29 @@ input {
         max-width: 100%;
     }
 }
+
+// Campo de senha com botão de olho (mostrar/ocultar)
+.campo-senha {
+    position: relative;
+
+    input {
+        padding-right: 42px !important;
+    }
+
+    .btn-olho {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #666;
+        padding: 4px 6px;
+        line-height: 1;
+        cursor: pointer;
+
+        &:hover {
+            color: $ong-orange;
+        }
+    }
+}

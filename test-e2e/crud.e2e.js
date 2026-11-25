@@ -45,7 +45,7 @@ app.on("browser-window-created", (_e, win) => {
         let d = await js(`doadoresData.map(x=>({id:x.id_doador,nome:x.nome}))`);
         check("cadastra doador (1ª letra maiúscula) e recusa CPF inválido", d.length === 1 && d[0].nome === "Doador fictício alfa", JSON.stringify(d));
         // XSS: nome com HTML vira texto
-        await js(`fecharModal("modalNovoDoador","formNovoDoador"); doadorNome.value='Beta <img src=x onerror="window.__xss=1">'; doadorCpf.value=""; addDoador()`);
+        await js(`fecharModal("modalNovoDoador","formNovoDoador"); doadorNome.value='Beta <img src=x onerror="window.__xss=1">'; doadorCpf.value=""; doadorSemContato.checked=true; addDoador()`);
         await espera(1000);
         check("HTML no nome é exibido como texto (sem executar)", (await js(`window.__xss===undefined && document.querySelector("#doadorTable tbody").textContent.includes("<img")`)));
         const id = d[0].id;
@@ -77,6 +77,53 @@ app.on("browser-window-created", (_e, win) => {
         await espera(1200);
         check("edita interação", (await js(`interacoesData[0].tipo_interacao`)) === "E-mail");
         await js(`fecharModal("modalEditarInteracao","formEditarInteracao")`);
+        await espera(600);
+
+        // WhatsApp obrigatório (a não ser que marque "ainda sem informações de contato")
+        await js(`showPage("doador"); doadorNome.value="Sem Whatsapp"; doadorTelefone.value=""; doadorSemContato.checked=false; addDoador(); 0`);
+        await espera(800);
+        const zap = { n: await js(`doadoresData.length`), titulo: await js(`Swal.getTitle() ? Swal.getTitle().textContent : ""`) };
+        check("exige WhatsApp quando não marca 'sem contato'", zap.n === 2 && zap.titulo.includes("WhatsApp"), JSON.stringify(zap));
+        await js(`fecharModal("modalNovoDoador","formNovoDoador")`);
+        await espera(500);
+        check("selo 'Sem contato' na lista", (await js(`document.querySelector("#doadorTable tbody").textContent.includes("Sem contato")`)));
+
+        // Data futura: só com status Pendente
+        const futura = await js(`(()=>{const d=new Date();d.setDate(d.getDate()+10);return d.toISOString().slice(0,10)})()`);
+        const idDoacao = await js(`doacoesData[0].id_doacao`);
+        await js(`updateDoacao(${idDoacao}); editDoacaoStatus.value="Pago"; editDoacaoData.value="${futura}"; salvarEdicaoDoacao()`);
+        await espera(1000);
+        check("recusa data futura com status Pago", (await js(`doacoesData[0].data_doacao`)) !== futura);
+        await js(`editDoacaoStatus.value="Pendente"; editDoacaoData.value="${futura}"; salvarEdicaoDoacao()`);
+        await espera(1200);
+        check("aceita data futura com status Pendente (promessa)", (await js(`doacoesData[0].data_doacao`)) === futura);
+        await js(`updateDoacao(${idDoacao}); editDoacaoStatus.value="Pago"; editDoacaoData.value=hojeISO(); salvarEdicaoDoacao()`);
+        await espera(1200);
+        await js(`fecharModal("modalEditarDoacao","formEditarDoacao")`);
+        await espera(500);
+
+        // Interação com pessoa não registrada (lead) e com doação relacionada
+        await js(`showPage("interacao"); bootstrap.Modal.getOrCreateInstance(document.getElementById("modalNovaInteracao")).show();`);
+        await espera(600);
+        await js(`choicesDoadorInteracao.setChoiceByValue("nao-registrada"); ajustarCamposInteracao("")`);
+        check("lead: mostra campos de pessoa não registrada", await js(`!grupoPessoa.classList.contains("hidden") && grupoDoacao.classList.contains("hidden")`));
+        await js(`tipoInteracao.value="Mensagem"; pessoaNome.value=""; addInteracaoNova()`);
+        await espera(800);
+        check("lead: exige o nome da pessoa", (await js(`interacoesData.length`)) === 1);
+        await js(`pessoaNome.value="Lead Fictício"; pessoaContato.value="(11) 90000-0099"; addInteracaoNova()`);
+        await espera(1200);
+        check("lead: grava interação sem doador", await js(`interacoesData.some(i => i.id_doador === null && i.pessoa_nome === "Lead Fictício")`));
+        check("lead: tabela mostra 'Não registrado'", await js(`document.querySelector("#interacaoTable tbody").textContent.includes("Não registrado")`));
+        await js(`bootstrap.Modal.getOrCreateInstance(document.getElementById("modalNovaInteracao")).show();`);
+        await espera(600);
+        await js(`choicesDoadorInteracao.setChoiceByValue("${id}"); ajustarCamposInteracao("")`);
+        check("doação relacionada: lista as doações do doador", (await js(`doacaoInteracao.options.length`)) === 2);
+        await js(`doacaoInteracao.value=String(${idDoacao}); tipoInteracao.value="E-mail"; addInteracaoNova()`);
+        await espera(1200);
+        check("doação relacionada: grava o vínculo", await js(`interacoesData.some(i => i.id_doacao === ${idDoacao})`), JSON.stringify({ idDoacao, inter: await js(`interacoesData.map(i=>[i.id_doador,i.id_doacao,i.tipo_interacao])`), titulo: await js(`Swal.getTitle() ? Swal.getTitle().textContent : ""`), escolha: await js(`idDoadorInteracao.value`), sel: await js(`doacaoInteracao.value`) }));
+        // volta ao estado esperado pela etapa 2 (1 interação)
+        await js(`Promise.all(interacoesData.filter(i => i.pessoa_nome || i.id_doacao).map(i => dados.excluir("interacao_nova", i.id_interacao))).then(() => loadInteracoes())`);
+        await espera(800);
 
         // regra: doador com vínculo não é excluído
         await js(`deleteDoador(${id})`);

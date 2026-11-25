@@ -159,6 +159,11 @@
             </div>
           </div>
 
+          <div class="opcoes-login">
+            <label class="lembrar-email"><input type="checkbox" id="lembrarEmail"> Lembrar meu e-mail</label>
+            <a href="#" data-click="esqueciSenha()">Esqueci minha senha</a>
+          </div>
+
           <primary-button label="Entrar" className="btn-block" data-onclick="signIn()"></primary-button>
 
           <!-- <div class="auth-links">
@@ -304,7 +309,7 @@
       <!-- Doadores -->
       <div id="doador-section" class="app-page section hidden">
         <h2>Doadores</h2>
-        <div class="d-flex gap-2 mb-3 justify-content-between">
+        <div class="d-flex flex-wrap gap-2 mb-3 barra-acoes">
           <primary-button label="Novo Doador +" className="btn btn-orange" data-bs-toggle="modal"
             data-bs-target="#modalNovoDoador"></primary-button>
           <div class="dropdown">
@@ -340,8 +345,13 @@
                     <input type="email" class="form-control" id="doadorEmail" placeholder="E-mail">
                   </div>
                   <div class="mb-3">
-                    <label for="doadorTelefone" class="form-label">Telefone</label>
-                    <input type="text" class="form-control" id="doadorTelefone" placeholder="Telefone">
+                    <label for="doadorTelefone" class="form-label">WhatsApp (com DDD)</label>
+                    <input type="text" class="form-control" id="doadorTelefone" placeholder="(11) 90000-0000">
+                  </div>
+                  <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="doadorSemContato">
+                    <label class="form-check-label" for="doadorSemContato">Ainda sem informações de contato</label>
+                    <div class="form-text">Sem esta marcação, o WhatsApp é obrigatório.</div>
                   </div>
                   <div class="mb-3">
                     <label for="doadorCpf" class="form-label">CPF/CNPJ</label>
@@ -356,7 +366,7 @@
               <div class="modal-footer">
                 <primary-button label="Cancelar" className="btn btn-ghost me-auto"
                   data-bs-dismiss="modal"></primary-button>
-                <primary-button label="Salvar" className="btn btn-orange" data-onclick="addDoador()"></primary-button>
+                <primary-button label="Criar" className="btn btn-orange" data-onclick="addDoador()"></primary-button>
               </div>
             </div>
           </div>
@@ -383,8 +393,13 @@
                     <input type="email" class="form-control" id="editDoadorEmail" placeholder="E-mail">
                   </div>
                   <div class="mb-3">
-                    <label for="editDoadorTelefone" class="form-label">Telefone</label>
-                    <input type="text" class="form-control" id="editDoadorTelefone" placeholder="Telefone">
+                    <label for="editDoadorTelefone" class="form-label">WhatsApp (com DDD)</label>
+                    <input type="text" class="form-control" id="editDoadorTelefone" placeholder="(11) 90000-0000">
+                  </div>
+                  <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="editDoadorSemContato">
+                    <label class="form-check-label" for="editDoadorSemContato">Ainda sem informações de contato</label>
+                    <div class="form-text">Sem esta marcação, o WhatsApp é obrigatório.</div>
                   </div>
                   <div class="mb-3">
                     <label for="editDoadorCpf" class="form-label">CPF/CNPJ</label>
@@ -457,7 +472,7 @@
       <!-- Doações -->
       <div id="doacao-section" class="app-page section hidden">
         <h2>Doações</h2>
-        <div class="d-flex gap-2 mb-3 justify-content-between">
+        <div class="d-flex flex-wrap gap-2 mb-3 barra-acoes">
           <primary-button label="Nova Doação +" className="btn btn-orange" data-bs-toggle="modal"
             data-bs-target="#modalNovaDoacao"></primary-button>
           <div class="dropdown">
@@ -499,6 +514,7 @@
                   <div class="mb-3">
                     <label for="doacaoData" class="form-label">Data</label>
                     <input type="date" class="form-control" id="doacaoData">
+                    <div class="form-text">A doação nova fica Pendente. Data futura = doação prometida.</div>
                   </div>
                   <div class="mb-3">
                     <label for="doacaoForma" class="form-label">Forma de Pagamento</label>
@@ -517,7 +533,7 @@
               <div class="modal-footer">
                 <primary-button label="Cancelar" className="btn btn-ghost me-auto"
                   data-bs-dismiss="modal"></primary-button>
-                <primary-button label="Salvar" className="btn btn-orange" data-onclick="addDoacao()"></primary-button>
+                <primary-button label="Criar" className="btn btn-orange" data-onclick="addDoacao()"></primary-button>
               </div>
             </div>
           </div>
@@ -571,6 +587,7 @@
                       <option value="Pendente">Pendente</option>
                       <option value="Não Pago">Não Pago</option>
                     </select>
+                    <div class="form-text">Data futura só é aceita com status Pendente (doação prometida).</div>
                   </div>
                 </form>
               </div>
@@ -607,7 +624,7 @@
       <!-- Interações -->
       <div id="interacao-section" class="app-page section hidden">
         <h2>Interações</h2>
-        <div class="d-flex gap-2 mb-3 justify-content-between">
+        <div class="d-flex flex-wrap gap-2 mb-3 barra-acoes">
           <primary-button label="Nova Interação +" className="btn btn-orange" data-bs-toggle="modal"
             data-bs-target="#modalNovaInteracao"></primary-button>
           <div class="dropdown">
@@ -635,9 +652,28 @@
               <div class="modal-body">
                 <form id="formNovaInteracao">
                   <div class="mb-3">
-                    <label for="idDoadorInteracao" class="form-label">Doador</label>
+                    <label for="idDoadorInteracao" class="form-label">Doador ou pessoa</label>
                     <select class="form-select" id="idDoadorInteracao" required>
                       <option value="" disabled selected>Selecione um doador</option>
+                    </select>
+                  </div>
+                  <div class="mb-3 hidden" id="grupoPessoa">
+                    <div class="row g-2">
+                      <div class="col-md-6">
+                        <label for="pessoaNome" class="form-label">Nome da pessoa</label>
+                        <input type="text" class="form-control" id="pessoaNome" placeholder="Nome">
+                      </div>
+                      <div class="col-md-6">
+                        <label for="pessoaContato" class="form-label">Contato (opcional)</label>
+                        <input type="text" class="form-control" id="pessoaContato" placeholder="WhatsApp ou e-mail">
+                      </div>
+                    </div>
+                    <div class="form-text">Para lead ou prospecção: alguém que ainda não é doador.</div>
+                  </div>
+                  <div class="mb-3 hidden" id="grupoDoacao">
+                    <label for="doacaoInteracao" class="form-label">Doação relacionada (opcional)</label>
+                    <select class="form-select" id="doacaoInteracao">
+                      <option value="">Nenhuma (opcional)</option>
                     </select>
                   </div>
                   <div class="mb-3">
@@ -666,7 +702,7 @@
               <div class="modal-footer">
                 <primary-button label="Cancelar" className="btn btn-ghost me-auto"
                   data-bs-dismiss="modal"></primary-button>
-                <primary-button label="Salvar" className="btn btn-orange"
+                <primary-button label="Criar" className="btn btn-orange"
                   data-onclick="addInteracaoNova()"></primary-button>
               </div>
             </div>
@@ -686,9 +722,28 @@
                 <form id="formEditarInteracao">
                   <input type="hidden" id="editInteracaoId">
                   <div class="mb-3">
-                    <label for="editIdDoadorInteracao" class="form-label">Doador</label>
+                    <label for="editIdDoadorInteracao" class="form-label">Doador ou pessoa</label>
                     <select class="form-select" id="editIdDoadorInteracao">
                       <option value="" disabled selected>Selecione um doador</option>
+                    </select>
+                  </div>
+                  <div class="mb-3 hidden" id="grupoPessoaEdit">
+                    <div class="row g-2">
+                      <div class="col-md-6">
+                        <label for="pessoaNomeEdit" class="form-label">Nome da pessoa</label>
+                        <input type="text" class="form-control" id="pessoaNomeEdit" placeholder="Nome">
+                      </div>
+                      <div class="col-md-6">
+                        <label for="pessoaContatoEdit" class="form-label">Contato (opcional)</label>
+                        <input type="text" class="form-control" id="pessoaContatoEdit" placeholder="WhatsApp ou e-mail">
+                      </div>
+                    </div>
+                    <div class="form-text">Para lead ou prospecção: alguém que ainda não é doador.</div>
+                  </div>
+                  <div class="mb-3 hidden" id="grupoDoacaoEdit">
+                    <label for="doacaoInteracaoEdit" class="form-label">Doação relacionada (opcional)</label>
+                    <select class="form-select" id="doacaoInteracaoEdit">
+                      <option value="">Nenhuma (opcional)</option>
                     </select>
                   </div>
                   <div class="mb-3">
@@ -734,7 +789,8 @@
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 2, 'texto')">Obs <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
-                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 3, 'data')">Data <i
+                <th>Doação</th>
+                <th class="th-sortable" data-click="ordenarTabela('interacaoTable', 4, 'data')">Data <i
                     class="fi fi-rr-sort icone-ordenacao"></i></th>
                 <th>Ações</th>
               </tr>

@@ -47,10 +47,10 @@
   <div class="sub">Manual do usuário — programa de gestão de doações (versão local)</div>
   <table class="sgq">
     <tr><td>Código</td><td>MAN-FC-001</td></tr>
-    <tr><td>Revisão</td><td>00</td></tr>
+    <tr><td>Revisão</td><td>01</td></tr>
     <tr><td>Data</td><td>25/11/2026</td></tr>
     <tr><td>Responsável</td><td>Isabelle Dutra</td></tr>
-    <tr><td>Versão do programa</td><td>1.0.0 ou mais nova</td></tr>
+    <tr><td>Versão do programa</td><td>1.1.0 ou mais nova</td></tr>
     <tr><td>Público</td><td>Equipe da ONG. Os itens marcados com <span class="admin">ADMIN</span> são só para o administrador.</td></tr>
   </table>
   <p style="font-size:9pt;color:#555;margin-top:18pt">As telas deste manual usam dados fictícios (nomes "Exemplo", CPF 000.000.000-00).</p>
@@ -162,12 +162,22 @@
     <li>Digite seu <strong>e-mail</strong> e sua <strong>senha</strong>.</li>
     <li>Clique em <strong>Entrar</strong> (ou aperte <kbd>Enter</kbd>).</li>
   </ol>
+  <p>Para ver a senha digitada, clique no <strong>olho</strong> dentro do campo. Marque <strong>Lembrar meu e-mail</strong> para o e-mail vir preenchido na próxima vez. O programa nunca guarda a senha.</p>
   <figure class="media"><img src="img/03-login.png"><figcaption>Figura 3 — Tela de entrada. O ícone de olho mostra a senha digitada.</figcaption></figure>
   <ul>
     <li>Para sair, clique em <strong>Sair</strong>, no fim do menu à esquerda.</li>
     <li>Depois de <strong>5 senhas erradas seguidas</strong>, o programa espera 30 segundos antes de aceitar outra tentativa.</li>
-    <li>Esqueceu a senha? Peça ao administrador para <strong>redefinir a senha</strong> (capítulo 10).</li>
   </ul>
+  <h3>Esqueci minha senha</h3>
+  <ol>
+    <li>Na tela de entrada, clique em <strong>Esqueci minha senha</strong>.</li>
+    <li><strong>Usuário comum:</strong> peça ao administrador para criar uma senha nova (capítulo 10).</li>
+    <li><strong>Administrador:</strong> clique em <strong>Sou administrador: usar a chave</strong>.</li>
+    <li>Digite o seu e-mail, a <strong>chave de recuperação</strong> impressa no primeiro acesso e a senha nova duas vezes.</li>
+    <li>Clique em <strong>Criar senha nova</strong> e entre com a senha nova.</li>
+  </ol>
+  <figure class="media"><img src="img/23-esqueci-senha.png"><figcaption>Figura 4 — Esqueci minha senha.</figcaption></figure>
+  <figure class="media"><img src="img/24-senha-pela-chave.png"><figcaption>Figura 5 — Senha nova de administrador com a chave de recuperação.</figcaption></figure>
 </section>
 
 <!-- 5 -->
@@ -179,24 +189,27 @@
     <li>Use o menu à esquerda para abrir as outras telas.</li>
     <li>No fim do menu aparece o <strong>Último backup</strong> (capítulo 11).</li>
   </ul>
-  <figure><img src="img/04-dashboard.png"><figcaption>Figura 4 — Dashboard (visão do administrador).</figcaption></figure>
+  <figure><img src="img/04-dashboard.png"><figcaption>Figura 6 — Dashboard (visão do administrador).</figcaption></figure>
 </section>
 
 <!-- 6 -->
 <section>
   <h2>6. Doadores</h2>
-  <figure><img src="img/05-doadores.png"><figcaption>Figura 5 — Lista de doadores. Clique no título de uma coluna para ordenar.</figcaption></figure>
+  <figure><img src="img/05-doadores.png"><figcaption>Figura 7 — Lista de doadores. Clique no título de uma coluna para ordenar.</figcaption></figure>
   <h3>Cadastrar um doador</h3>
   <ol>
     <li>Clique em <strong>Doadores</strong> no menu.</li>
     <li>Clique em <strong>Novo Doador +</strong>.</li>
-    <li>Preencha o <strong>nome</strong> (obrigatório) e os outros campos que tiver.</li>
-    <li>Clique em <strong>Salvar</strong>.</li>
+    <li>Preencha o <strong>nome</strong> e o <strong>WhatsApp</strong> (obrigatórios) e os outros campos que tiver.</li>
+    <li>Se ainda não tiver nenhum contato da pessoa, marque <strong>Ainda sem informações de contato</strong>. Assim o WhatsApp deixa de ser obrigatório.</li>
+    <li>Clique em <strong>Criar</strong>.</li>
   </ol>
-  <figure class="media"><img src="img/06-novo-doador.png"><figcaption>Figura 6 — Novo doador.</figcaption></figure>
+  <p>Nas telas de edição, o botão se chama <strong>Salvar</strong>.</p>
+  <figure class="media"><img src="img/06-novo-doador.png"><figcaption>Figura 8 — Novo doador.</figcaption></figure>
   <p>O programa confere os dados antes de salvar:</p>
   <ul>
-    <li>Telefone com DDD: 10 ou 11 números.</li>
+    <li>WhatsApp com DDD: 10 ou 11 números.</li>
+    <li>Doador sem contato aparece com o selo <strong>Sem contato</strong> na lista.</li>
     <li>CPF com 11 números ou CNPJ com 14 números.</li>
     <li>E-mail no formato nome@provedor.com.</li>
   </ul>
@@ -214,7 +227,7 @@
 <!-- 7 -->
 <section>
   <h2>7. Doações</h2>
-  <figure><img src="img/07-doacoes.png"><figcaption>Figura 7 — Lista de doações. O relógio vermelho indica data futura (doação prometida).</figcaption></figure>
+  <figure><img src="img/07-doacoes.png"><figcaption>Figura 9 — Lista de doações. O relógio vermelho indica data futura (doação prometida).</figcaption></figure>
   <h3>Registrar uma doação</h3>
   <ol>
     <li>Clique em <strong>Doações</strong> no menu.</li>
@@ -222,32 +235,45 @@
     <li>Escolha o <strong>doador</strong>. Digite parte do nome para procurar.</li>
     <li>Digite o <strong>valor</strong> (maior que zero) e confira a <strong>data</strong>.</li>
     <li>Escolha a <strong>forma de pagamento</strong>.</li>
-    <li>Clique em <strong>Salvar</strong>. A doação entra com o status <em>Pendente</em>.</li>
+    <li>Clique em <strong>Criar</strong>. A doação entra com o status <em>Pendente</em>.</li>
   </ol>
-  <figure class="media"><img src="img/08-nova-doacao.png"><figcaption>Figura 8 — Nova doação.</figcaption></figure>
+  <figure class="media"><img src="img/08-nova-doacao.png"><figcaption>Figura 10 — Nova doação.</figcaption></figure>
   <h3>Marcar como paga</h3>
   <ol>
     <li>Clique no <strong>lápis</strong> da doação.</li>
     <li>Em <strong>Status</strong>, escolha <em>Pago</em> (ou <em>Não Pago</em>).</li>
     <li>Clique em <strong>Salvar</strong>.</li>
   </ol>
+  <div class="aviso">
+    <strong>Data futura = doação prometida</strong>
+    Uma doação com data futura só pode ficar <em>Pendente</em>. Para marcar como <em>Pago</em> ou <em>Não Pago</em>, a data precisa ser de hoje ou anterior.
+  </div>
   <p>Para cadastrar uma doação, o doador precisa estar cadastrado (capítulo 6).</p>
 </section>
 
 <!-- 8 -->
 <section>
   <h2>8. Interações</h2>
-  <p>Interação é qualquer contato com o doador: mensagem, ligação, e-mail, redes sociais ou visita. O programa registra quem cadastrou cada interação.</p>
-  <figure><img src="img/09-interacoes.png"><figcaption>Figura 9 — Lista de interações.</figcaption></figure>
+  <p>Interação é qualquer contato com o doador ou com uma pessoa interessada: mensagem, ligação, e-mail, redes sociais ou visita. O programa registra quem cadastrou cada interação.</p>
+  <figure><img src="img/09-interacoes.png"><figcaption>Figura 11 — Lista de interações.</figcaption></figure>
   <ol>
     <li>Clique em <strong>Interações</strong> no menu.</li>
     <li>Clique em <strong>Nova Interação +</strong>.</li>
-    <li>Escolha o <strong>doador</strong> e o <strong>tipo</strong> de contato.</li>
-    <li>Escreva as <strong>observações</strong> (opcional).</li>
+    <li>Em <strong>Doador ou pessoa</strong>, escolha o doador.</li>
+    <li>Se a interação for sobre uma doação, escolha a <strong>Doação relacionada</strong> (opcional).</li>
+    <li>Escolha o <strong>tipo</strong> de contato e escreva as <strong>observações</strong> (opcional).</li>
     <li>Confira a <strong>data</strong>. A data não pode ser futura.</li>
-    <li>Clique em <strong>Salvar</strong>.</li>
+    <li>Clique em <strong>Criar</strong>.</li>
   </ol>
-  <figure class="media"><img src="img/10-nova-interacao.png"><figcaption>Figura 10 — Nova interação.</figcaption></figure>
+  <figure class="media"><img src="img/10-nova-interacao.png"><figcaption>Figura 12 — Nova interação com doação relacionada.</figcaption></figure>
+  <h3>Pessoa que ainda não é doadora (lead, prospecção)</h3>
+  <ol>
+    <li>Em <strong>Doador ou pessoa</strong>, escolha <strong>+ Pessoa não registrada (lead / prospecção)</strong>.</li>
+    <li>Digite o <strong>nome</strong> da pessoa (obrigatório) e o <strong>contato</strong> (opcional).</li>
+    <li>Preencha tipo, data e observações e clique em <strong>Criar</strong>.</li>
+  </ol>
+  <p>Na lista, a interação aparece com o selo <strong>Não registrado</strong>. Se a pessoa virar doadora, cadastre-a em Doadores.</p>
+  <figure class="media"><img src="img/22-interacao-lead.png"><figcaption>Figura 13 — Interação com pessoa não registrada.</figcaption></figure>
 </section>
 
 <!-- 9 -->
@@ -259,7 +285,7 @@
     <li>Escolha <strong>CSV (Excel)</strong> ou <strong>PDF</strong>.</li>
     <li>Escolha a pasta e clique em <strong>Salvar</strong>.</li>
   </ol>
-  <figure class="media"><img src="img/20-exportar.png"><figcaption>Figura 11 — Menu Exportar.</figcaption></figure>
+  <figure class="media"><img src="img/20-exportar.png"><figcaption>Figura 14 — Menu Exportar.</figcaption></figure>
   <div class="aviso vermelho">
     <strong>O arquivo exportado não tem proteção</strong>
     CSV e PDF saem sem criptografia. Use só para consulta ou impressão. Apague o arquivo quando terminar. Não envie para fora da ONG.
@@ -270,17 +296,17 @@
 <section>
   <h2>10. Usuários <span class="admin">ADMIN</span></h2>
   <p>Cada pessoa da equipe deve ter o próprio usuário. Não compartilhe senhas.</p>
-  <figure><img src="img/11-usuarios.png"><figcaption>Figura 12 — Tela Usuários.</figcaption></figure>
+  <figure><img src="img/11-usuarios.png"><figcaption>Figura 15 — Tela Usuários.</figcaption></figure>
   <h3>Criar um usuário</h3>
   <ol>
     <li>Clique em <strong>Usuários</strong> no menu.</li>
     <li>Clique em <strong>Novo Usuário +</strong>.</li>
     <li>Digite o nome, o e-mail e uma <strong>senha inicial</strong> (no mínimo 8 caracteres).</li>
     <li>Escolha o nível: <strong>Usuário comum</strong> ou <strong>Administrador</strong>.</li>
-    <li>Clique em <strong>Salvar</strong>.</li>
+    <li>Clique em <strong>Criar</strong>.</li>
     <li>Entregue a senha inicial à pessoa e peça para ela trocar a senha (capítulo 13).</li>
   </ol>
-  <figure class="media"><img src="img/12-novo-usuario.png"><figcaption>Figura 13 — Novo usuário.</figcaption></figure>
+  <figure class="media"><img src="img/12-novo-usuario.png"><figcaption>Figura 16 — Novo usuário.</figcaption></figure>
   <h3>Outras ações</h3>
   <ul>
     <li><strong>Lápis</strong>: muda nome, e-mail ou nível. Desmarque <em>Ativo</em> para bloquear uma pessoa que saiu da ONG.</li>
@@ -289,7 +315,7 @@
   </ul>
   <h3>O que o usuário comum vê</h3>
   <p>O usuário comum não vê os menus Usuários e Backup, nem os botões de excluir e de Excel.</p>
-  <figure><img src="img/19-usuario-comum.png"><figcaption>Figura 14 — Tela do usuário comum.</figcaption></figure>
+  <figure><img src="img/19-usuario-comum.png"><figcaption>Figura 17 — Tela do usuário comum.</figcaption></figure>
 </section>
 
 <!-- 11 -->
@@ -308,7 +334,7 @@
     <tr><td style="color:#b26a00">Último backup: data (laranja)</td><td>Mais de 2 dias sem backup.</td><td>Abra a tela Backup e clique em <em>Fazer backup agora</em>.</td></tr>
     <tr><td style="color:#dc3545"><strong>Backup com problema</strong> (vermelho)</td><td>O último backup falhou.</td><td>Veja a mensagem na tela Backup. Confira se o OneDrive está conectado.</td></tr>
   </table>
-  <figure><img src="img/13-backup.png"><figcaption>Figura 15 — Tela Backup.</figcaption></figure>
+  <figure><img src="img/13-backup.png"><figcaption>Figura 18 — Tela Backup.</figcaption></figure>
   <h3>Cópia semanal em pendrive</h3>
   <p>Uma vez por semana, o programa lembra o administrador de fazer uma cópia em pendrive. Esta cópia protege os dados se o computador quebrar ou for roubado.</p>
   <ol>
@@ -318,7 +344,7 @@
     <li>Espere a mensagem <em>"Cópia feita!"</em>.</li>
     <li>Retire o pendrive com segurança e guarde longe do computador.</li>
   </ol>
-  <figure class="media"><img src="img/14-lembrete-pendrive.png"><figcaption>Figura 16 — Lembrete semanal. "Lembrar amanhã" adia o aviso por 1 dia.</figcaption></figure>
+  <figure class="media"><img src="img/14-lembrete-pendrive.png"><figcaption>Figura 19 — Lembrete semanal. "Lembrar amanhã" adia o aviso por 1 dia.</figcaption></figure>
   <h3>Restaurar um backup</h3>
   <p>Use só se os dados atuais estiverem errados ou perdidos. A restauração troca <strong>todos</strong> os dados atuais pelos dados do backup.</p>
   <ol>
@@ -328,7 +354,7 @@
     <li>Digite a sua senha de administrador e clique em <strong>Restaurar</strong>.</li>
     <li>Entre de novo no programa.</li>
   </ol>
-  <figure class="media"><img src="img/16-restaurar.png"><figcaption>Figura 17 — Confirmação da restauração.</figcaption></figure>
+  <figure class="media"><img src="img/16-restaurar.png"><figcaption>Figura 20 — Confirmação da restauração.</figcaption></figure>
   <div class="aviso verde">
     <strong>Os dados atuais não se perdem</strong>
     Antes de restaurar, o programa faz um backup dos dados atuais. Se algo der errado, o programa volta os dados anteriores.
@@ -344,7 +370,7 @@
     <li>Leia o aviso e clique em <strong>Entendi, exportar</strong>.</li>
     <li>Escolha a pasta e clique em <strong>Salvar</strong>. O nome do arquivo tem a palavra "consulta" e a data.</li>
   </ol>
-  <figure class="media"><img src="img/15-aviso-excel.png"><figcaption>Figura 18 — Aviso antes de gerar a planilha.</figcaption></figure>
+  <figure class="media"><img src="img/15-aviso-excel.png"><figcaption>Figura 21 — Aviso antes de gerar a planilha.</figcaption></figure>
   <div class="aviso vermelho">
     <strong>A planilha é só para leitura</strong>
     Alterações feitas na planilha <strong>não voltam</strong> para o programa. A planilha não tem senha: não envie, não copie para computadores de terceiros e apague o arquivo depois da consulta.
@@ -360,7 +386,7 @@
     <li>Digite a nova senha duas vezes (no mínimo 8 caracteres).</li>
     <li>Clique em <strong>Salvar</strong>.</li>
   </ol>
-  <figure class="media"><img src="img/17-alterar-senha.png"><figcaption>Figura 19 — Alterar minha senha.</figcaption></figure>
+  <figure class="media"><img src="img/17-alterar-senha.png"><figcaption>Figura 22 — Alterar minha senha.</figcaption></figure>
   <p>Dica: use uma frase fácil de lembrar e difícil de adivinhar, por exemplo três palavras e um número.</p>
 </section>
 
@@ -373,7 +399,7 @@
     <li>A atualização é instalada quando você fecha o programa. Para instalar na hora, clique no aviso e em <strong>Instalar agora</strong>.</li>
     <li>O programa faz um backup antes de instalar. Os dados continuam iguais.</li>
   </ul>
-  <figure class="media"><img src="img/21-atualizacao-pronta.png"><figcaption>Figura 20 — Aviso de atualização no menu.</figcaption></figure>
+  <figure class="media"><img src="img/21-atualizacao-pronta.png"><figcaption>Figura 23 — Aviso de atualização no menu.</figcaption></figure>
   <p>Sem internet, o programa funciona normalmente. A atualização espera a próxima conexão.</p>
 </section>
 
@@ -388,7 +414,7 @@
     <li>Digite a <strong>chave de recuperação</strong> impressa. Letras maiúsculas, minúsculas e espaços não importam.</li>
     <li>Clique em <strong>Abrir dados</strong> e entre com o seu usuário.</li>
   </ol>
-  <figure class="media"><img src="img/18-recuperar.png"><figcaption>Figura 21 — Tela de recuperação.</figcaption></figure>
+  <figure class="media"><img src="img/18-recuperar.png"><figcaption>Figura 24 — Tela de recuperação.</figcaption></figure>
   <h3>Computador novo</h3>
   <ol>
     <li>Instale o programa no computador novo e faça o primeiro acesso (capítulo 3). Este cadastro é provisório.</li>
@@ -406,7 +432,9 @@
   <table>
     <tr><th>Problema</th><th>O que fazer</th></tr>
     <tr><td>Esqueci a senha.</td><td>Peça ao administrador para redefinir a senha (capítulo 10).</td></tr>
-    <tr><td>O administrador esqueceu a senha e não há outro administrador.</td><td>Fale com a responsável pelo sistema. Por segurança, recomenda-se ter <strong>dois administradores</strong>.</td></tr>
+    <tr><td>O administrador esqueceu a senha.</td><td>Use <strong>Esqueci minha senha</strong> com a chave de recuperação (capítulo 4). Recomenda-se ter <strong>dois administradores</strong>.</td></tr>
+    <tr><td>"Informe o WhatsApp" ao criar um doador.</td><td>Digite o WhatsApp com DDD ou marque <em>Ainda sem informações de contato</em>.</td></tr>
+    <tr><td>"Data futura só para doação Pendente".</td><td>Use a data de hoje (ou anterior) ou deixe o status como Pendente.</td></tr>
     <tr><td>"Muitas tentativas. Aguarde 30 segundos."</td><td>Espere 30 segundos e digite a senha com atenção (confira o Caps Lock).</td></tr>
     <tr><td>"Usuário desativado."</td><td>Peça ao administrador para marcar o usuário como Ativo.</td></tr>
     <tr><td>"Não é possível excluir" ao excluir um doador.</td><td>O doador tem doações ou interações. Exclua antes as doações e interações dele, ou mantenha o doador.</td></tr>

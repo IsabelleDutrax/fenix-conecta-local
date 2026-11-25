@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld("sessao", {
   recuperar: chamar("sessao:recuperar"),
   verChaveRecuperacao: chamar("sessao:verChaveRecuperacao"),
   alterarMinhaSenha: chamar("sessao:alterarMinhaSenha"),
+  redefinirSenhaComChave: chamar("sessao:redefinirSenhaComChave"),
 });
 
 contextBridge.exposeInMainWorld("backup", {

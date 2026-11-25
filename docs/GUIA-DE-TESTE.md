@@ -3,10 +3,10 @@
 | Campo | Valor |
 |---|---|
 | Código | GT-FC-001 |
-| Revisão | 00 |
+| Revisão | 01 |
 | Data | 25/11/2026 |
 | Responsável | Isabelle Dutra |
-| Versão testada | 1.0.0 |
+| Versão testada | 1.1.0 |
 | Tempo estimado | 60 a 90 minutos |
 
 ## Conclusão
@@ -31,7 +31,7 @@ O programa **não tem usuário nem senha de fábrica**. Na primeira vez que abre
 
 ## Dados fictícios para cadastro
 
-| Nome | E-mail | Telefone | CPF/CNPJ | Endereço |
+| Nome | E-mail | WhatsApp | CPF/CNPJ | Endereço |
 |---|---|---|---|---|
 | Ana Teste | ana@example.org | (11) 90000-0001 | 000.000.000-01 | Rua Exemplo, 100 |
 | Bruno Teste | bruno@example.org | (11) 90000-0002 | 000.000.000-02 | Av. Modelo, 200 |
@@ -46,7 +46,7 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 | # | Faça | Resultado esperado | OK? |
 |---|---|---|---|
 | 1.1 | Na tela de primeiro acesso, digite nome **Admin Teste**, e-mail **admin.teste@example.org**, senha **Teste#Admin2026** e repita a senha **errada** (ex.: Teste#Admin2025). Clique em **Criar administrador**. | Aviso "As senhas não conferem". Nada é criado. | ☐ |
-| 1.2 | Corrija a repetição da senha e clique em **Criar administrador**. | Aparece a tela da **chave de recuperação** (8 grupos de 8 letras/números). | ☐ |
+| 1.2 | Clique no **olho** dentro dos campos de senha. Corrija a repetição da senha e clique em **Criar administrador**. | O olho mostra/oculta a senha. Depois aparece a tela da **chave de recuperação** (8 grupos de 8 letras/números). | ☐ |
 | 1.3 | Clique em **Copiar** e cole a chave no Bloco de Notas (só no teste). | Aviso "Chave copiada!". | ☐ |
 | 1.4 | Tente clicar em **Continuar** sem marcar a confirmação. | O botão está desativado (cinza). | ☐ |
 | 1.5 | Marque a confirmação e clique em **Continuar**. | O programa abre no Dashboard. Rodapé: "Logado como admin.teste@example.org — Administrador". | ☐ |
@@ -57,13 +57,14 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 
 | # | Faça | Resultado esperado | OK? |
 |---|---|---|---|
-| 2.1 | Menu **Doadores** → **Novo Doador +**. Cadastre **Ana Teste** com todos os dados da tabela. | A Ana aparece na lista. | ☐ |
+| 2.1 | Menu **Doadores** → **Novo Doador +**. Cadastre **Ana Teste** com todos os dados da tabela e clique em **Criar**. | O botão do formulário novo é **Criar**. A Ana aparece na lista. | ☐ |
 | 2.2 | Cadastre **Bruno Teste** e **Empresa Teste Ltda**. | 3 doadores na lista. | ☐ |
 | 2.3 | Tente cadastrar "Teste Erro" com CPF **123**. | Aviso "CPF/CNPJ inválido". Não salva. | ☐ |
 | 2.4 | Tente cadastrar "Teste Erro" com telefone **1234**. | Aviso "Telefone inválido". Não salva. | ☐ |
 | 2.5 | Tente cadastrar "Teste Erro" com e-mail **ana@**. | Aviso "E-mail inválido". Não salva. | ☐ |
-| 2.6 | Cadastre "teste minúsculo" (só o nome). | Salva como "Teste minúsculo" (1ª letra maiúscula). | ☐ |
-| 2.7 | Clique no **lápis** do Bruno, mude o telefone para (11) 90000-0022 e salve. | Aviso "Informações salvas!" e telefone atualizado. | ☐ |
+| 2.6 | Tente cadastrar "teste minúsculo" só com o nome. | Aviso "Informe o WhatsApp". Não salva. | ☐ |
+| 2.6b | Repita marcando **Ainda sem informações de contato**. | Salva como "Teste minúsculo" (1ª letra maiúscula), com o selo **Sem contato** na coluna WhatsApp. | ☐ |
+| 2.7 | Clique no **lápis** do Bruno, mude o WhatsApp para (11) 90000-0022 e clique em **Salvar**. | O botão da edição é **Salvar**. Aviso "Informações salvas!" e WhatsApp atualizado. | ☐ |
 | 2.8 | Clique no título da coluna **Nome**. | A lista ordena por nome (clique de novo inverte). | ☐ |
 | 2.9 | Clique na **prancheta** da Ana. | Aviso "Mensagem copiada!". Cole no Bloco de Notas: mensagem de agradecimento com o nome dela. | ☐ |
 
@@ -71,11 +72,12 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 
 | # | Faça | Resultado esperado | OK? |
 |---|---|---|---|
-| 3.1 | Menu **Doações** → **Nova Doação +**. Doador: digite "Ana" e escolha **Ana Teste**. Valor **150**, forma **Pix**. Salve. | Aparece "R$ 150,00", status **Pendente**. | ☐ |
+| 3.1 | Menu **Doações** → **Nova Doação +** (o botão fica ao lado de **Exportar**). Doador: digite "Ana" e escolha **Ana Teste**. Valor **150**, forma **Pix**. Clique em **Criar**. | Aparece "R$ 150,00", status **Pendente**. | ☐ |
 | 3.2 | Cadastre para **Empresa Teste Ltda**: valor **1500**, forma Transferência. | Aparece "R$ 1.500,00". | ☐ |
 | 3.3 | Cadastre para **Bruno Teste**: valor **80,50** e data **daqui a 10 dias**. | Aparece um **relógio vermelho** ao lado da data (doação futura). | ☐ |
 | 3.4 | Tente cadastrar valor **0**. | Aviso "Informe um valor válido maior que zero". | ☐ |
-| 3.5 | Clique no **lápis** da doação da Ana e mude o status para **Pago**. | Selo verde "Pago". | ☐ |
+| 3.5 | Clique no **lápis** da doação da Ana e mude o status para **Pago**. Clique em **Salvar**. | Selo verde "Pago". | ☐ |
+| 3.5b | Edite a doação do **Bruno** (data futura), mude o status para **Pago** e clique em **Salvar**. | Aviso "Data futura só para doação Pendente". Não salva. Com status **Pendente**, a data futura é aceita. | ☐ |
 | 3.6 | Volte ao **Dashboard**. | Total arrecadado **R$ 1.730,50** (todo o período) e **4 doadores**. Mude o período para "Última semana" e veja o total mudar. | ☐ |
 | 3.7 | Em **Doadores**, clique no número da coluna **Doações** da Ana. | Janela com as doações da Ana. | ☐ |
 
@@ -83,8 +85,10 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 
 | # | Faça | Resultado esperado | OK? |
 |---|---|---|---|
-| 4.1 | Menu **Interações** → **Nova Interação +**. Doador Ana, tipo **Ligação**, observação "Agradeceu a doação". Salve. | Aparece na lista. | ☐ |
+| 4.1 | Menu **Interações** → **Nova Interação +**. Em **Doador ou pessoa**, escolha Ana. Em **Doação relacionada**, escolha a doação de R$ 150,00. Tipo **Ligação**, observação "Agradeceu a doação". Clique em **Criar**. | Aparece na lista, com a doação na coluna **Doação**. | ☐ |
 | 4.2 | Tente cadastrar com data **amanhã**. | Aviso "A data da interação não pode ser no futuro". | ☐ |
+| 4.3 | Nova interação: em **Doador ou pessoa**, escolha **+ Pessoa não registrada (lead / prospecção)**. Deixe o nome vazio e clique em **Criar**. | Aviso "Informe o nome da pessoa não registrada". | ☐ |
+| 4.4 | Digite nome **Lead Teste** e contato **(11) 90000-0099**, tipo **Mensagem**. Clique em **Criar**. | Aparece "Lead Teste · (11) 90000-0099" com o selo **Não registrado**. | ☐ |
 
 ### 5. Exportar tabelas
 
@@ -100,7 +104,7 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 |---|---|---|---|
 | 6.1 | No **Dashboard**, clique em **Exportar Excel (consulta)**. | Aviso sobre **dados pessoais (LGPD)**. | ☐ |
 | 6.2 | Clique em **Entendi, exportar** e salve. | Arquivo "Fenix Conecta - consulta - DD-MM-AAAA.xlsx". | ☐ |
-| 6.3 | Abra a planilha. | Abas **LEIA-ME**, Doadores, Doações, Interações. Valores em R$, datas DD/MM/AAAA. Na aba Interações, "Registrado por" = Admin Teste. | ☐ |
+| 6.3 | Abra a planilha. | Abas **LEIA-ME**, Doadores, Doações, Interações. Valores em R$, datas DD/MM/AAAA. Doadores com coluna "Sem contato". Interações com "Situação" (Doador / Não registrado), "Doação relacionada" e "Registrado por" = Admin Teste. | ☐ |
 | 6.4 | Apague a planilha. | — | ☐ |
 
 ### 7. Backup (administrador)
@@ -116,13 +120,17 @@ Marque cada passo como OK ou anote o problema (com a hora e, se possível, um pr
 
 | # | Faça | Resultado esperado | OK? |
 |---|---|---|---|
-| 8.1 | Menu **Usuários** → **Novo Usuário +**. Nome **Voluntário Teste**, e-mail **voluntario.teste@example.org**, nível **Usuário comum**, senha **Teste#Comum2026**. Salve. | 2 usuários na lista. | ☐ |
+| 8.1 | Menu **Usuários** → **Novo Usuário +**. Nome **Voluntário Teste**, e-mail **voluntario.teste@example.org**, nível **Usuário comum**, senha **Teste#Comum2026** (confira o olho). Clique em **Criar**. | 2 usuários na lista. | ☐ |
 | 8.2 | Clique em **Sair**. Entre com **voluntario.teste@example.org** / **Teste#Comum2026**. | Rodapé: "Usuário comum". Menu **sem** Usuários e Backup; sem "Chave de recuperação". | ☐ |
 | 8.3 | Abra Doadores, Doações e Interações. | **Sem** botões de lixeira. Dashboard **sem** "Exportar Excel". Rodapé mostra o último backup. | ☐ |
 | 8.4 | Cadastre uma interação. | Salva normalmente. | ☐ |
 | 8.5 | Saia. Entre como **admin**, menu **Usuários**, botão **chave** do Voluntário: senha nova **Teste#Nova2026**. Saia e entre como voluntário com a senha **antiga**. | "E-mail ou senha incorretos". Com **Teste#Nova2026**, entra. | ☐ |
 | 8.6 | Ainda como voluntário: **Alterar minha senha** de Teste#Nova2026 para **Teste#Comum2026**. Saia e entre de novo. | Entra com Teste#Comum2026. | ☐ |
 | 8.7 | Saia. Digite a senha errada **5 vezes** seguidas para o admin. | Na 6ª tentativa: "Muitas tentativas. Aguarde 30 segundos." Depois de 30 s, a senha certa funciona. | ☐ |
+| 8.8 | Na tela de entrada, marque **Lembrar meu e-mail** e entre como admin. Saia, feche e abra o programa. | O e-mail do admin já vem preenchido; a senha não. Desmarque e entre de novo: na próxima vez o e-mail não vem. | ☐ |
+| 8.9 | Clique em **Esqueci minha senha**. | Explica: usuário comum pede ao administrador; administrador usa a chave. | ☐ |
+| 8.10 | Clique em **Sou administrador: usar a chave**. Digite o e-mail do admin, uma chave **errada** e uma senha nova. | "E-mail de administrador ou chave de recuperação incorretos." | ☐ |
+| 8.11 | Repita com a chave anotada no passo 1.3 e a senha nova **Teste#Chave2026**. Entre com ela. Depois volte a senha para **Teste#Admin2026** (Alterar minha senha). | "Senha nova criada!" e o login funciona com a senha nova. | ☐ |
 
 ### 9. Exclusão (administrador)
 

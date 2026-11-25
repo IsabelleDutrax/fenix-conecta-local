@@ -27,7 +27,7 @@ const DOADORES = [
   { nome: "Bruno Exemplo", email: "bruno@example.org", telefone: "(11) 90000-0002", cpf_cnpj: "000.000.000-02", endereco: "Av. Modelo, 200" },
   { nome: "Carla Exemplo", email: "carla@example.org", telefone: "(11) 90000-0003", cpf_cnpj: "000.000.000-03", endereco: "Rua Fictícia, 300" },
   { nome: "Empresa Exemplo Ltda", email: "contato@example.org", telefone: "(11) 3000-0004", cpf_cnpj: "00.000.000/0001-00", endereco: "Av. Teste, 400" },
-  { nome: "Fernanda Exemplo", email: "", telefone: "(11) 90000-0005", cpf_cnpj: "", endereco: "" },
+  { nome: "Fernanda Exemplo", email: "", telefone: "", cpf_cnpj: "", endereco: "", sem_contato: 1 },
 ];
 
 app.on("browser-window-created", (_e, win) => {
@@ -85,8 +85,16 @@ app.on("browser-window-created", (_e, win) => {
             [3, "E-mail", "Envio do recibo", ${JSON.stringify(dia(-2))}],
             [2, "Visita presencial", "Visitou a sede", ${JSON.stringify(dia(-4))}],
           ];
+          const doacaoAna = (await dados.listar("doacao_nova")).data.filter((d) => d.id_doador === ids[0]).pop();
           for (const [i, tipo_interacao, observacoes, data_interacao] of interacoes)
-            await dados.inserir("interacao_nova", { id_doador: ids[i], tipo_interacao, observacoes, data_interacao });
+            await dados.inserir("interacao_nova", {
+              id_doador: ids[i], tipo_interacao, observacoes, data_interacao,
+              id_doacao: i === 0 ? doacaoAna.id_doacao : null,
+            });
+          await dados.inserir("interacao_nova", {
+            pessoa_nome: "Lead Exemplo", pessoa_contato: "(11) 90000-0010", tipo_interacao: "Mensagem",
+            observacoes: "Conheceu a ONG na feira", data_interacao: ${JSON.stringify(dia(-1))},
+          });
           await usuarios.criar({ nome: "Voluntário Exemplo", email: "voluntario@example.org", senha: "SenhaVoluntario#2026", nivel_acesso: 1 });
           await loadData();
         })()`);
@@ -125,8 +133,15 @@ app.on("browser-window-created", (_e, win) => {
         await foto("09-interacoes");
         await js(`document.querySelector('#interacao-section [data-bs-target="#modalNovaInteracao"]').click()`);
         await espera(500);
-        await js(`choicesDoadorInteracao.setChoiceByValue(String(doadoresData[1].id_doador)); tipoInteracao.value="Ligação"; observacoes.value="Lembrete da campanha de fim de ano"`);
+        await js(`choicesDoadorInteracao.setChoiceByValue(String(doadoresData[0].id_doador)); ajustarCamposInteracao(""); tipoInteracao.value="Ligação"; observacoes.value="Lembrete da campanha de fim de ano"`);
+        await js(`doacaoInteracao.selectedIndex = 1`);
         await foto("10-nova-interacao");
+        await js(`fecharModal("modalNovaInteracao","formNovaInteracao")`);
+        await espera(700);
+        await js(`document.querySelector('#interacao-section [data-bs-target="#modalNovaInteracao"]').click()`);
+        await espera(500);
+        await js(`choicesDoadorInteracao.setChoiceByValue("nao-registrada"); ajustarCamposInteracao(""); pessoaNome.value="Lead Exemplo"; pessoaContato.value="(11) 90000-0010"; tipoInteracao.value="Mensagem"; observacoes.value="Conheceu a ONG na feira"`);
+        await foto("22-interacao-lead");
         await js(`fecharModal("modalNovaInteracao","formNovaInteracao")`);
         await espera(500);
 
@@ -173,7 +188,13 @@ app.on("browser-window-created", (_e, win) => {
         await espera(1500);
         await js(`email.value="voluntario@example.org"`);
         await foto("03-login");
-        await js(`password.value="SenhaVoluntario#2026"; signIn()`);
+        await js(`email.value="responsavel@example.org"; esqueciSenha(); 0`);
+        if (await swalVisivel()) await foto("23-esqueci-senha");
+        await js(`Swal.clickConfirm()`);
+        await espera(900);
+        await foto("24-senha-pela-chave");
+        await fecharTudo();
+        await js(`email.value="voluntario@example.org"; password.value="SenhaVoluntario#2026"; signIn()`);
         await espera(1800);
         await fecharTudo();
         await js(`showPage("doador")`);

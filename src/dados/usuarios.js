@@ -102,6 +102,10 @@ function criarUsuarios(db) {
       return publico(porId(id));
     },
 
+    obterPorEmail(email) {
+      return publico(db.prepare("SELECT * FROM usuario WHERE email = ?").get(texto(email).toLowerCase()));
+    },
+
     criar({ nome, email, senha, nivel_acesso = NIVEL_COMUM }) {
       nome = texto(nome);
       email = texto(email).toLowerCase();

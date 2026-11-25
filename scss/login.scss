@@ -226,3 +226,30 @@ button.btn-block:disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }
+
+// Opções abaixo da senha: lembrar e-mail / esqueci minha senha
+.opcoes-login {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin: -4px 0 $margin;
+
+    .lembrar-email {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #555;
+        cursor: pointer;
+
+        input {
+            width: auto;
+            margin: 0;
+        }
+    }
+
+    a {
+        color: $ong-orange;
+    }
+}

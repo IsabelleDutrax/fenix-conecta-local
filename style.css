@@ -212,6 +212,28 @@ input:focus {
   max-width: 100%;
 }
 
+.campo-senha {
+  position: relative;
+}
+.campo-senha input {
+  padding-right: 42px !important;
+}
+.campo-senha .btn-olho {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #666;
+  padding: 4px 6px;
+  line-height: 1;
+  cursor: pointer;
+}
+.campo-senha .btn-olho:hover {
+  color: #FF5722;
+}
+
 .login-container {
   display: flex;
   flex-direction: column;
@@ -432,6 +454,29 @@ button.btn-block:hover {
 button.btn-block:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.opcoes-login {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin: -4px 0 10px;
+}
+.opcoes-login .lembrar-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  cursor: pointer;
+}
+.opcoes-login .lembrar-email input {
+  width: auto;
+  margin: 0;
+}
+.opcoes-login a {
+  color: #FF5722;
 }
 
 .app-shell {

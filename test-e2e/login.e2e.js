@@ -59,7 +59,7 @@ app.on("browser-window-created", (_e, win) => {
         check("perfil exibido: Administrador", (await js(`userNivelDisplay.textContent`)) === "Administrador");
         check("menu Usuários visível para admin", !(await js(`document.querySelector('li.somente-admin').classList.contains('hidden')`)));
 
-        await js(`doadorNome.value="Doador Fictício Gama"; addDoador()`);
+        await js(`doadorNome.value="Doador Fictício Gama"; doadorTelefone.value="(11) 90000-0009"; addDoador()`);
         await espera(1000);
         const idD = await js(`doadoresData[0] && doadoresData[0].id_doador`);
         await js(`choicesDoadorInteracao.setChoiceByValue("${idD}"); tipoInteracao.value="Mensagem"; dataInteracao.value=hojeISO(); addInteracaoNova()`);
@@ -120,6 +120,32 @@ app.on("browser-window-created", (_e, win) => {
         check("senha nova funciona", await visivel("app-shell"));
         const ver = await js(`sessao.verChaveRecuperacao("NovaSenha#2026")`);
         check("admin vê a chave com a senha", ver.data === fs.readFileSync(arqChave, "utf8"));
+
+        // Esqueci minha senha (administrador, com a chave de recuperação)
+        const chaveCerta = fs.readFileSync(arqChave, "utf8");
+        const r1 = await js(`sessao.redefinirSenhaComChave("${ADMIN.email}", "00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000", "OutraSenha#2026")`);
+        check("esqueci a senha: chave errada é recusada", r1.error && r1.error.code === "CREDENCIAIS");
+        const r2 = await js(`sessao.redefinirSenhaComChave("${COMUM.email}", ${JSON.stringify(chaveCerta)}, "OutraSenha#2026")`);
+        check("esqueci a senha: só vale para administrador", r2.error && r2.error.code === "CREDENCIAIS");
+        const r3 = await js(`sessao.redefinirSenhaComChave("${ADMIN.email}", ${JSON.stringify(chaveCerta.toLowerCase())}, "SenhaPelaChave#2026")`);
+        check("esqueci a senha: chave certa cria senha nova", r3.error === null);
+        await sair();
+        await entrar(ADMIN.email, "SenhaPelaChave#2026");
+        check("entra com a senha criada pela chave", await visivel("app-shell"));
+        await js(`sessao.alterarMinhaSenha("SenhaPelaChave#2026", "NovaSenha#2026")`);
+
+        // Lembrar meu e-mail (nunca a senha)
+        await sair();
+        await js(`lembrarEmail.checked = true`);
+        await entrar(ADMIN.email, "NovaSenha#2026");
+        await sair();
+        await js(`email.value = ""; password.value = ""; mostrarPainelLogin("auth-section")`);
+        check("lembrar meu e-mail: e-mail já preenchido", (await js(`email.value`)) === ADMIN.email && (await js(`password.value`)) === "");
+        await js(`lembrarEmail.checked = false`);
+        await entrar(ADMIN.email, "NovaSenha#2026");
+        await sair();
+        await js(`email.value = ""; mostrarPainelLogin("auth-section")`);
+        check("desmarcar 'lembrar' esquece o e-mail", (await js(`email.value`)) === "");
       }
 
       if (etapa === "C") {

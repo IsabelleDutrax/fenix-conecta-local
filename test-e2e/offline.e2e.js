@@ -74,7 +74,7 @@ app.on("browser-window-created", (_e, win) => {
       await clicar('#doador-section [data-bs-target="#modalNovoDoador"]');
       await espera(700);
       check("modal do Bootstrap abre", await js(`document.getElementById("modalNovoDoador").classList.contains("show")`));
-      await js(`doadorNome.value="Doador Fictício Épsilon"; doadorEmail.value="epsilon@exemplo.invalid"`);
+      await js(`doadorNome.value="Doador Fictício Épsilon"; doadorTelefone.value="(11) 90000-0005"; doadorEmail.value="epsilon@exemplo.invalid"`);
       await clicar("#modalNovoDoador .modal-footer .btn-orange");
       await espera(1500);
       check("botão Salvar (primary-button) grava", (await js(`doadoresData.length`)) === 1);

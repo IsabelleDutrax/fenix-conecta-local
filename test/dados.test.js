@@ -206,7 +206,7 @@ describe("CRUD interação", () => {
       }),
     );
     const semDoador = ok(
-      repo.inserir("interacao_nova", { id_doador: null, tipo_interacao: "Evento" }),
+      repo.inserir("interacao_nova", { id_doador: null, pessoa_nome: "Lead Fictício", tipo_interacao: "Evento" }),
     );
     assert.equal(semDoador.id_doador, null);
 
@@ -222,6 +222,48 @@ describe("CRUD interação", () => {
 
   test("tipo vazio é recusado", () => {
     assert.ok(repo.inserir("interacao_nova", { tipo_interacao: "" }).error);
+  });
+
+  test("pessoa não registrada (lead): exige nome; não mistura com doador", () => {
+    const d = ok(repo.inserir("doador_novo", DOADOR_FICTICIO));
+    const semNinguem = repo.inserir("interacao_nova", { tipo_interacao: "Ligação" });
+    assert.equal(semNinguem.error.code, "SEM_PESSOA");
+    const nomeVazio = repo.inserir("interacao_nova", { tipo_interacao: "Ligação", pessoa_nome: "   " });
+    assert.equal(nomeVazio.error.code, "SEM_PESSOA");
+    const dois = repo.inserir("interacao_nova", { id_doador: d.id_doador, pessoa_nome: "Outro", tipo_interacao: "Ligação" });
+    assert.equal(dois.error.code, "PESSOA_DUPLA");
+    const lead = ok(
+      repo.inserir("interacao_nova", { pessoa_nome: "Lead Fictício", pessoa_contato: "(11) 90000-0099", tipo_interacao: "Mensagem" }),
+    );
+    assert.equal(lead.id_doador, null);
+    assert.equal(lead.pessoa_contato, "(11) 90000-0099");
+    assert.equal(ok(repo.listar("interacao_nova")).length, 1, "gravações recusadas foram desfeitas");
+  });
+
+  test("doação vinculada é opcional e precisa ser do mesmo doador", () => {
+    const a = ok(repo.inserir("doador_novo", DOADOR_FICTICIO));
+    const b = ok(repo.inserir("doador_novo", { ...DOADOR_FICTICIO, nome: "Outro Doador" }));
+    const doacaoA = ok(repo.inserir("doacao_nova", { id_doador: a.id_doador, valor: 10 }));
+    const i = ok(repo.inserir("interacao_nova", { id_doador: a.id_doador, id_doacao: doacaoA.id_doacao, tipo_interacao: "E-mail" }));
+    assert.equal(i.id_doacao, doacaoA.id_doacao);
+    const errada = repo.inserir("interacao_nova", { id_doador: b.id_doador, id_doacao: doacaoA.id_doacao, tipo_interacao: "E-mail" });
+    assert.equal(errada.error.code, "DOACAO_OUTRO_DOADOR");
+    // trocar o doador sem tirar a doação é recusado (e desfeito)
+    const troca = repo.atualizar("interacao_nova", i.id_interacao, { id_doador: b.id_doador });
+    assert.equal(troca.error.code, "DOACAO_OUTRO_DOADOR");
+    assert.equal(ok(repo.obter("interacao_nova", i.id_interacao)).id_doador, a.id_doador);
+    // excluir a doação mantém a interação, sem vínculo
+    ok(repo.excluir("doacao_nova", doacaoA.id_doacao));
+    assert.equal(ok(repo.obter("interacao_nova", i.id_interacao)).id_doacao, null);
+  });
+});
+
+describe("doador sem contato", () => {
+  test("campo sem_contato grava 0/1 e recusa outros valores", () => {
+    const d = ok(repo.inserir("doador_novo", { nome: "Sem Contato", sem_contato: 1 }));
+    assert.equal(d.sem_contato, 1);
+    assert.equal(ok(repo.inserir("doador_novo", { nome: "Padrão" })).sem_contato, 0);
+    assert.ok(repo.inserir("doador_novo", { nome: "X", sem_contato: 5 }).error);
   });
 });
 

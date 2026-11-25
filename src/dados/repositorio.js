@@ -5,7 +5,7 @@
 const TABELAS = {
   doador_novo: {
     id: "id_doador",
-    colunas: ["nome", "email", "telefone", "cpf_cnpj", "endereco"],
+    colunas: ["nome", "email", "telefone", "cpf_cnpj", "endereco", "sem_contato"],
   },
   doacao_nova: {
     id: "id_doacao",
@@ -13,7 +13,33 @@ const TABELAS = {
   },
   interacao_nova: {
     id: "id_interacao",
-    colunas: ["id_doador", "id_usuario", "tipo_interacao", "observacoes", "data_interacao"],
+    colunas: [
+      "id_doador",
+      "id_usuario",
+      "tipo_interacao",
+      "observacoes",
+      "data_interacao",
+      "id_doacao",
+      "pessoa_nome",
+      "pessoa_contato",
+    ],
+    // Regras que dependem de mais de uma coluna (conferidas depois de gravar, na mesma transação).
+    regras(db, linha) {
+      const temDoador = linha.id_doador !== null;
+      const temPessoa = !!(linha.pessoa_nome && String(linha.pessoa_nome).trim());
+      if (!temDoador && !temPessoa) {
+        throw erroDados("Escolha o doador ou informe o nome da pessoa não registrada.", "SEM_PESSOA");
+      }
+      if (temDoador && (linha.pessoa_nome || linha.pessoa_contato)) {
+        throw erroDados("A interação é de um doador cadastrado ou de uma pessoa não registrada, não dos dois.", "PESSOA_DUPLA");
+      }
+      if (linha.id_doacao !== null) {
+        const doacao = db.prepare("SELECT id_doador FROM doacao_nova WHERE id_doacao = ?").get(linha.id_doacao);
+        if (!doacao || doacao.id_doador !== linha.id_doador) {
+          throw erroDados("A doação escolhida não é deste doador.", "DOACAO_OUTRO_DOADOR");
+        }
+      }
+    },
   },
 };
 
@@ -99,8 +125,12 @@ function criarRepositorio(db) {
         const cols = Object.keys(limpo);
         if (!cols.length) throw erroDados("Registro vazio.", "REGISTRO_INVALIDO");
         const sql = `INSERT INTO ${tabela} (${cols.join(", ")}) VALUES (${cols.map((c) => "@" + c).join(", ")})`;
-        const info = db.prepare(sql).run(limpo);
-        return db.prepare(`SELECT * FROM ${tabela} WHERE ${def.id} = ?`).get(info.lastInsertRowid);
+        return db.transaction(() => {
+          const info = db.prepare(sql).run(limpo);
+          const linha = db.prepare(`SELECT * FROM ${tabela} WHERE ${def.id} = ?`).get(info.lastInsertRowid);
+          if (def.regras) def.regras(db, linha); // erro aqui desfaz a gravação
+          return linha;
+        })();
       });
     },
 
@@ -112,13 +142,17 @@ function criarRepositorio(db) {
         const cols = Object.keys(limpo);
         if (!cols.length) throw erroDados("Nada para atualizar.", "REGISTRO_INVALIDO");
         const sets = cols.map((c) => `${c} = @${c}`).join(", ");
-        const info = db
-          .prepare(
-            `UPDATE ${tabela} SET ${sets}, alterado_em = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE ${def.id} = @__id`,
-          )
-          .run({ ...limpo, __id: n });
-        if (!info.changes) throw erroDados("Registro não encontrado.", "NAO_ENCONTRADO");
-        return db.prepare(`SELECT * FROM ${tabela} WHERE ${def.id} = ?`).get(n);
+        return db.transaction(() => {
+          const info = db
+            .prepare(
+              `UPDATE ${tabela} SET ${sets}, alterado_em = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE ${def.id} = @__id`,
+            )
+            .run({ ...limpo, __id: n });
+          if (!info.changes) throw erroDados("Registro não encontrado.", "NAO_ENCONTRADO");
+          const linha = db.prepare(`SELECT * FROM ${tabela} WHERE ${def.id} = ?`).get(n);
+          if (def.regras) def.regras(db, linha); // erro aqui desfaz a alteração
+          return linha;
+        })();
       });
     },
 
