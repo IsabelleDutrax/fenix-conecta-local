@@ -33,6 +33,7 @@ npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 
 - `docs/Manual-Fenix-Conecta.pdf` — manual do usuário (MAN-FC-001), também aberto pelo botão **Ajuda (manual)** do programa.
 - `docs/CHECKLIST-ENTREGA.md` — checklist de instalação e entrega na ONG (CHK-FC-001).
+- `docs/GUIA-DE-TESTE.md` — roteiro de teste manual com perfis e dados fictícios (GT-FC-001).
 - `PLANO.md` — fases, decisões e pendências.
 
 ## Instalador e atualização automática
