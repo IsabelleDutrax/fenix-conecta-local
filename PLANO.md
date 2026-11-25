@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Documento | PLANO.md |
-| Revisão | 06 |
+| Revisão | 07 |
 | Data | 25/11/2026 |
 | Responsável | Isabelle Dutra |
 | Origem | Fork local de `IsabelleDutrax/sistema-mvp-ong-fenix` (histórico preservado; remote `upstream` somente leitura) |
@@ -94,6 +94,22 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 | Checklist de entrega | `docs/CHECKLIST-ENTREGA.md` (CHK-FC-001 rev. 00): antes da visita, instalação, primeiro acesso com a ONG, configuração, treinamento, conferência e acompanhamento de 30 dias. |
 | Correções encontradas | Itens de admin e aviso de atualização apareciam na tela mesmo escondidos (CSS); valores em R$ sem formato brasileiro; barra de rolagem na janela de senha. Testes passaram a conferir a visibilidade real. |
 | Versão | 1.0.0 (`dist\Fenix-Conecta-Setup-1.0.0.exe`). |
+
+## Versão 1.1.0 — ajustes após o teste da responsável (25/11/2026)
+
+| Pedido | Como ficou |
+|---|---|
+| Verificações no cadastro de doador | WhatsApp obrigatório, exceto com "Ainda sem informações de contato" (selo "Sem contato" na lista). |
+| Botões dos formulários | "Criar" nos formulários novos; "Salvar" nos de edição (inclusive usuários). |
+| Data futura na doação | Só com status Pendente (doação prometida). Decisão da responsável entre bloquear sempre e manter como promessa. |
+| Botão principal | "Novo ... +" ao lado de "Exportar", à esquerda, em todas as listas. |
+| Interação | Doação relacionada (opcional, só doações do doador escolhido) e opção "Pessoa não registrada (lead / prospecção)" com nome e contato. Migração 4. |
+| Olho na senha | Em todos os campos de senha (primeiro acesso, usuários, alterar senha, restaurar, esqueci a senha). |
+| Salvar senha no login | **Não implementado** por segurança (computador compartilhado, LGPD). Implementado "Lembrar meu e-mail" (a senha nunca é guardada). Abrir Bloco de Notas com e-mail e senha foi desaconselhado (senha em texto aberto). |
+| Esqueci minha senha | Usuário comum: administrador redefine. Administrador: cria senha nova com a chave de recuperação (mesmo bloqueio de 5 tentativas). |
+| Selos coloridos no status, layout centralizado em telas largas, guia de teste em PDF | Cancelados pela responsável em 25/11/2026. |
+
+Manual MAN-FC-001 rev. 01 (26 páginas) e guia de teste GT-FC-001 rev. 01 atualizados.
 
 ## Decisões em aberto
 

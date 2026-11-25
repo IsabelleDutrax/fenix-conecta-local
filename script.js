@@ -1881,7 +1881,7 @@ function lerFormularioInteracao(prefixo) {
 // Coluna "Doador" da tabela: doador cadastrado ou pessoa não registrada (com selo)
 function quemDaInteracao(i) {
   if (i.id_doador !== null && i.id_doador !== undefined) return nomeDoador(i.id_doador);
-  const contato = i.pessoa_contato ? ` (${esc(i.pessoa_contato)})` : "";
+  const contato = i.pessoa_contato ? ` · ${esc(i.pessoa_contato)}` : "";
   return `${esc(i.pessoa_nome || "-")}${contato} <span class="badge bg-secondary">Não registrado</span>`;
 }
 
