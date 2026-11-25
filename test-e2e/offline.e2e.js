@@ -61,6 +61,11 @@ app.on("browser-window-created", (_e, win) => {
       check("entra no sistema", await visivel("app-shell"));
       await js(`Swal.isVisible() && Swal.close()`); // lembrete semanal de pendrive
       await espera(500);
+      check("aviso de atualização escondido quando não há atualização", await js(`getComputedStyle(avisoAtualizacao).display === "none"`));
+      const valoresMoeda = await js(`dados.inserir("doador_novo",{nome:"Moeda"}).then(r=>dados.inserir("doacao_nova",{id_doador:r.data.id_doador,valor:1500})).then(()=>loadDoacoes()).then(()=>[...document.querySelectorAll("#doacaoTable tbody td:nth-child(2)")].map(t=>t.textContent.trim()))`);
+      check("valor da doação em formato brasileiro", valoresMoeda.includes("R$ 1.500,00") || valoresMoeda.includes("R$ 1.500,00"), valoresMoeda.join(" | "));
+      await js(`dados.listar("doacao_nova").then(r=>Promise.all(r.data.map(d=>dados.excluir("doacao_nova",d.id_doacao)))).then(()=>dados.listar("doador_novo")).then(r=>Promise.all(r.data.map(d=>dados.excluir("doador_novo",d.id_doador)))).then(()=>loadData())`);
+      await espera(500);
 
       // Navegação pelo menu e modal do Bootstrap
       await clicar('.sidebar .nav-link[data-page="doador"]');

@@ -86,6 +86,8 @@ app.on("browser-window-created", (_e, win) => {
         check("usuário comum entra", await visivel("app-shell"));
         check("perfil exibido: Usuário comum", (await js(`userNivelDisplay.textContent`)) === "Usuário comum");
         check("menu Usuários oculto para comum", await js(`document.querySelector('li.somente-admin').classList.contains('hidden')`));
+        const visiveis = await js(`[...document.querySelectorAll('.somente-admin')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.textContent.trim())`);
+        check("nenhuma função de admin VISÍVEL na tela do comum (estilo calculado)", visiveis.length === 0, visiveis.join(" | "));
         const tentativa = await js(`usuarios.listar()`);
         check("comum não lista usuários nem chamando a API direto", tentativa.error && tentativa.error.code === "SEM_PERMISSAO");
         const chaveComum = await js(`sessao.verChaveRecuperacao(${JSON.stringify(COMUM.senha)})`);
