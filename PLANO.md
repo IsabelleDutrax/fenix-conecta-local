@@ -20,7 +20,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | **Por quê** | O cliente exige que os dados sensíveis fiquem só na máquina dele. O usuário final não é técnico. |
 | **Onde** | PC Windows do cliente. Programa em `Arquivos de Programas`; dados em `%APPDATA%\FenixConecta\dados`. |
 | **Quem** | Desenvolvimento: Isabelle Dutra (com suporte de IA). Uso: equipe da ONG (admin + usuários comuns). |
-| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026; fases 6 e 7 em 25/11/2026. Versão de entrega: 1.0.0 (publicação aguarda autorização). |
+| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026; fases 6 e 7 em 25/11/2026. Versão de entrega: 1.0.0, publicada no GitHub Releases em 25/11/2026. |
 | **Como** | Electron + SQLite criptografado (`better-sqlite3-multiple-ciphers`, esquema SQLCipher v4), IPC com `contextIsolation`, instalador `.exe` com atualização via GitHub Releases. |
 | **Quanto** | Sem custo de licença (bibliotecas MIT). Custo de assinatura de código do instalador: precisa de validação (ver decisões em aberto). |
 
@@ -104,7 +104,7 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 6. **Excel só para administrador** (decisão da fase 5, por conter todos os dados pessoais). Validar com o cliente.
 7. **Exportar CSV/PDF por tabela** (herdado do sistema web) continua disponível a todos e gera arquivo sem criptografia, sem aviso LGPD. Opções: (a) manter; (b) restringir ao administrador e incluir o mesmo aviso do Excel. Recomendado: (b).
 5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação. Sem ela, o manual (fase 7) mostra o passo "Mais informações → Executar assim mesmo".
-8. **Publicar a 1ª versão no GitHub Releases** (`npm run publicar`, exige token do GitHub): aguarda autorização da responsável. Sem release publicada, a atualização automática não tem o que baixar.
+8. ~~Publicar a 1ª versão no GitHub Releases~~: resolvido em 25/11/2026 — 1.0.0 publicada em https://github.com/IsabelleDutrax/fenix-conecta-local/releases/tag/v1.0.0 (instalador, blockmap e latest.yml; feed de atualização conferido). Próximas versões: `npm run publicar` (script `scripts/publicar-release.js`).
 9. **Uso em mais de um computador**: cada instalação tem banco próprio. Se a ONG precisar de uso simultâneo em vários PCs, avaliar fase extra "computador servidor na rede local" (dados continuam na ONG).
 
 ---

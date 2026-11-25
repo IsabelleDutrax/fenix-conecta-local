@@ -14,7 +14,7 @@
     "vendor": "node scripts/copiar-vendor.js",
     "dist": "electron-builder --win nsis --x64 --publish never",
     "dist:pasta": "electron-builder --win dir --x64 --publish never",
-    "publicar": "electron-builder --win nsis --x64 --publish always"
+    "publicar": "npm run dist && node scripts/publicar-release.js"
   },
   "devDependencies": {
     "@flaticon/flaticon-uicons": "3.3.1",

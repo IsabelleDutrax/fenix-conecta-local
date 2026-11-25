@@ -40,7 +40,7 @@ npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 ```bash
 npm run dist         # gera dist\Fenix-Conecta-Setup-<versão>.exe (não publica)
 npm run dist:pasta   # gera dist\win-unpacked (programa sem instalador, para testes)
-npm run publicar     # gera e publica no GitHub Releases (exige GH_TOKEN; só com autorização)
+npm run publicar     # gera e publica no GitHub Releases (usa o login do gh; só com autorização)
 ```
 
 - Instalador de um clique, **por usuário** (não pede senha de administrador do Windows), em `%LOCALAPPDATA%\Programs\fenix-conecta-local`. Cria atalho "Fênix Conecta" na área de trabalho e no menu Iniciar.
@@ -48,7 +48,8 @@ npm run publicar     # gera e publica no GitHub Releases (exige GH_TOKEN; só co
 - Instalação/desinstalação silenciosa (TI): `Fenix-Conecta-Setup-<versão>.exe /S` e `"Uninstall Fenix Conecta.exe" /S`, rodando pelo PowerShell ou CMD (o Git Bash troca `/S` por um caminho e o modo silencioso não funciona).
 - Desinstalar **não apaga os dados** (`%APPDATA%\FenixConecta`) nem os backups.
 - Atualização: o programa instalado consulta o GitHub Releases 10 s após abrir e a cada 6 h, baixa em segundo plano e instala ao fechar (ou na hora, pelo aviso "Atualização pronta" no menu). Faz um backup antes de instalar. Sem internet, o uso diário continua normal.
-- Para publicar uma versão nova: aumentar `version` no `package.json`, rodar `npm run publicar` com `GH_TOKEN` definido. Os programas instalados se atualizam sozinhos.
+- Para publicar uma versão nova: aumentar `version` no `package.json`, fazer commit e push, e rodar `npm run publicar` (usa o login do GitHub CLI, `gh auth login`). O script confere que o código está no GitHub e que o `latest.yml` corresponde ao instalador antes de publicar. Os programas instalados se atualizam sozinhos.
+- Versão publicada: **1.0.0** — https://github.com/IsabelleDutrax/fenix-conecta-local/releases/latest
 - Sem assinatura digital, o Windows mostra "O Windows protegeu o computador" na primeira instalação: clicar em **Mais informações → Executar assim mesmo**.
 - Autoteste do programa instalado (não usa dados reais):
 
