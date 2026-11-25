@@ -28,9 +28,9 @@ A entrega leva cerca de 2 horas na ONG: instalar, fazer o primeiro acesso **com 
 ## Etapa 1 — Antes da visita
 
 1. **[BLOQUEIA]** Confirme com a ONG quantos computadores vão usar o sistema. A versão atual funciona em **um** computador (vários usuários, um de cada vez). Se precisarem de vários computadores ao mesmo tempo, pare e reavalie (PLANO.md, decisão 9).
-2. **[BLOQUEIA]** Decida como o instalador chega à ONG:
-   - (a) publicar a versão no GitHub Releases (`npm run publicar`) e levar o link — habilita a atualização automática; ou
-   - (b) levar o arquivo `dist\Fenix-Conecta-Setup-<versão>.exe` em pendrive — a atualização automática só funciona depois da primeira publicação.
+2. Leve o instalador por link ou pendrive:
+   - link da versão mais recente: https://github.com/IsabelleDutrax/fenix-conecta-local/releases/latest (arquivo `Fenix-Conecta-Setup-<versão>.exe`);
+   - sem internet boa na ONG: copie o mesmo arquivo para um pendrive. A atualização automática funciona nos dois casos (a 1.0.0 já está publicada).
 3. Rode os testes no computador de desenvolvimento e confirme que passam:
    - `npm test` (testes da camada de dados);
    - `npm run test:e2e` (testes de ponta a ponta).
@@ -115,7 +115,7 @@ Use o manual impresso. Para cada item, a pessoa da ONG executa e você observa.
 
 | # | Item | Impacto | Responsável |
 |---|---|---|---|
-| 1 | Publicar a primeira versão no GitHub Releases | Sem isso, não há atualização automática | Isabelle Dutra |
+| 1 | ~~Publicar a primeira versão no GitHub Releases~~ | Resolvido em 25/11/2026 (1.0.0 publicada) | Isabelle Dutra |
 | 2 | Assinatura digital do instalador | Aviso do Windows na instalação | Decisão: Isabelle Dutra |
 | 3 | Uso em vários computadores | Hoje: um computador | Validar com a ONG |
 | 4 | Excel só para administrador | Validar com a ONG | Isabelle Dutra |
