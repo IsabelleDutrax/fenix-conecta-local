@@ -633,3 +633,9 @@ button.btn-block:disabled {
   color: #dc3545;
   font-weight: bold;
 }
+
+.sidebar .sidebar-footer .aviso-atualizacao {
+  color: #FF5722;
+  font-weight: bold;
+  font-size: 0.85rem;
+}

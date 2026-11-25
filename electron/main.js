@@ -2,27 +2,47 @@
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { app, BrowserWindow, shell, session } = require("electron");
-const { registrarCanais, fecharDados } = require("./ipc");
+const { registrarCanais, fecharDados, backupAntesDeAtualizar, origemValida } = require("./ipc");
+const { criarAtualizacao } = require("./atualizacao");
+const autoteste = require("./autoteste");
 
 const RAIZ_APP = path.join(__dirname, "..");
+const INDEX_HTML = path.join(RAIZ_APP, "index.html");
+const PRELOAD = path.join(__dirname, "preload.js");
 // Prefixo file:// da pasta do programa (com barra final para não aceitar pastas "irmãs").
 const PREFIXO_APP = pathToFileURL(RAIZ_APP + path.sep).href.toLowerCase();
 
-// Pasta do programa no %APPDATA% (sem acento, para evitar problemas de caminho).
-// Em desenvolvimento/testes, FENIX_PASTA_DADOS isola os dados (ignorado no instalador).
-app.setPath(
-  "userData",
-  process.env.FENIX_PASTA_DADOS && !app.isPackaged
-    ? path.resolve(process.env.FENIX_PASTA_DADOS)
-    : path.join(app.getPath("appData"), "FenixConecta"),
-);
+const MODO_AUTOTESTE = autoteste.emModoAutoteste();
+let pastasAutoteste = null;
 
-// Uma única instância: abrir duas vezes o mesmo banco pode corromper dados.
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
+if (MODO_AUTOTESTE) {
+  // Autoteste do programa instalado: pasta própria, nunca os dados reais.
+  pastasAutoteste = autoteste.prepararPastas();
+} else {
+  // Pasta do programa no %APPDATA% (sem acento, para evitar problemas de caminho).
+  // Em desenvolvimento/testes, FENIX_PASTA_DADOS isola os dados (ignorado no instalador).
+  app.setPath(
+    "userData",
+    process.env.FENIX_PASTA_DADOS && !app.isPackaged
+      ? path.resolve(process.env.FENIX_PASTA_DADOS)
+      : path.join(app.getPath("appData"), "FenixConecta"),
+  );
+
+  // Uma única instância: abrir duas vezes o mesmo banco pode corromper dados.
+  if (!app.requestSingleInstanceLock()) {
+    app.quit();
+  }
 }
 
 let janela = null;
+
+const atualizacao = criarAtualizacao({
+  obterJanela: () => janela,
+  antesDeInstalar: () => {
+    backupAntesDeAtualizar();
+    fecharDados();
+  },
+});
 
 function criarJanela() {
   janela = new BrowserWindow({
@@ -31,11 +51,11 @@ function criarJanela() {
     minWidth: 900,
     minHeight: 600,
     title: "Fênix Conecta",
-    icon: path.join(__dirname, "..", "img", "favicon_io", "android-chrome-512x512.png"),
+    icon: path.join(RAIZ_APP, "img", "favicon_io", "android-chrome-512x512.png"),
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: PRELOAD,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -54,9 +74,12 @@ function criarJanela() {
       abrirExterno(url);
     }
   });
+  // Se a atualização já estava baixada quando a tela abriu (ou recarregou), avisa de novo.
+  janela.webContents.on("did-finish-load", () => atualizacao.avisarTela());
 
   janela.once("ready-to-show", () => janela.show());
-  janela.loadFile(path.join(__dirname, "..", "index.html"));
+  janela.on("closed", () => (janela = null));
+  janela.loadFile(INDEX_HTML);
 }
 
 function abrirExterno(url) {
@@ -70,6 +93,7 @@ function dentroDoApp(url) {
 // Modo offline garantido: a janela só lê arquivos da pasta do programa.
 // Qualquer pedido à internet (ou a outro arquivo do disco) é cancelado, mesmo que
 // algum código tente — os dados pessoais nunca saem por aqui.
+// (A atualização automática usa outra sessão de rede, só no processo principal.)
 function bloquearRede() {
   session.defaultSession.webRequest.onBeforeRequest((detalhes, responder) => {
     const url = detalhes.url;
@@ -91,20 +115,41 @@ function bloquearRede() {
   session.defaultSession.setPermissionCheckHandler((_wc, permissao) => PERMITIDAS.has(permissao));
 }
 
-app.on("second-instance", () => {
-  if (janela) {
-    if (janela.isMinimized()) janela.restore();
-    janela.focus();
-  }
-});
+if (MODO_AUTOTESTE) {
+  app.whenReady().then(() =>
+    autoteste.executar(pastasAutoteste, {
+      bloquearRede,
+      registrarCanais: () => {
+        registrarCanais();
+        atualizacao.registrarCanais(origemValida);
+      },
+      fecharDados,
+      preload: PRELOAD,
+      indexHtml: INDEX_HTML,
+    }),
+  );
+} else {
+  app.on("second-instance", () => {
+    if (janela) {
+      if (janela.isMinimized()) janela.restore();
+      janela.focus();
+    }
+  });
 
-app.whenReady().then(() => {
-  bloquearRede();
-  registrarCanais();
-  criarJanela();
-});
+  app.whenReady().then(() => {
+    bloquearRede();
+    registrarCanais();
+    atualizacao.registrarCanais(origemValida);
+    criarJanela();
+    atualizacao.iniciar();
+  });
 
-app.on("window-all-closed", () => {
-  fecharDados();
-  app.quit();
-});
+  app.on("window-all-closed", () => app.quit());
+
+  // Fecha o banco com segurança em qualquer saída (inclusive quando o atualizador fecha o programa).
+  // Se uma atualização vai ser instalada ao fechar, faz um backup antes.
+  app.on("will-quit", () => {
+    if (atualizacao.temAtualizacaoPronta()) backupAntesDeAtualizar();
+    fecharDados();
+  });
+}

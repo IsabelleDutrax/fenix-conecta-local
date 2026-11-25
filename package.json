@@ -1,7 +1,7 @@
 {
   "name": "fenix-conecta-local",
   "productName": "Fenix Conecta",
-  "version": "0.2.0",
+  "version": "0.6.0",
   "description": "Gestão de doações da ONG Fênix — versão local (offline) com banco criptografado.",
   "private": true,
   "main": "electron/main.js",
@@ -10,7 +10,10 @@
     "test": "node --test \"test/**/*.test.js\"",
     "build:css": "sass scss/main.scss:style.css --no-source-map --style=expanded",
     "watch:css": "sass --watch scss/main.scss:style.css --no-source-map --style=expanded",
-    "vendor": "node scripts/copiar-vendor.js"
+    "vendor": "node scripts/copiar-vendor.js",
+    "dist": "electron-builder --win nsis --x64 --publish never",
+    "dist:pasta": "electron-builder --win dir --x64 --publish never",
+    "publicar": "electron-builder --win nsis --x64 --publish always"
   },
   "devDependencies": {
     "@flaticon/flaticon-uicons": "3.3.1",
@@ -18,6 +21,7 @@
     "bootstrap": "5.3.3",
     "choices.js": "11.2.3",
     "electron": "45.3.3",
+    "electron-builder": "26.18.1",
     "jspdf": "4.2.1",
     "jspdf-autotable": "5.0.8",
     "sass": "1.77.8",
@@ -25,6 +29,73 @@
   },
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "13.2.0",
+    "electron-updater": "6.8.12",
     "write-excel-file": "4.1.1"
+  },
+  "author": "Isabelle Dutra",
+  "homepage": "https://github.com/IsabelleDutrax/fenix-conecta-local",
+  "build": {
+    "appId": "com.fenixconecta.local",
+    "productName": "Fenix Conecta",
+    "copyright": "Isabelle Dutra",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**",
+      "src/**",
+      "index.html",
+      "script.js",
+      "style.css",
+      "img/**",
+      "vendor/**",
+      "package.json",
+      "!**/*.map",
+      "!node_modules/better-sqlite3-multiple-ciphers/deps/**",
+      "!node_modules/better-sqlite3-multiple-ciphers/src/**",
+      "!node_modules/better-sqlite3-multiple-ciphers/binding.gyp",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/darwin-arm64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/darwin-x64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/linux-arm64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/linux-x64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/linuxmusl-arm64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/linuxmusl-x64.node",
+      "!node_modules/better-sqlite3-multiple-ciphers/prebuilds/win32-arm64.node"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/better-sqlite3-multiple-ciphers/prebuilds/*.node"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "img/favicon_io/android-chrome-512x512.png",
+      "artifactName": "Fenix-Conecta-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Fênix Conecta",
+      "uninstallDisplayName": "Fênix Conecta",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "IsabelleDutrax",
+        "repo": "fenix-conecta-local",
+        "releaseType": "release"
+      }
+    ]
   }
 }
