@@ -71,4 +71,15 @@ module.exports = [
       );
     `,
   },
+  {
+    versao: 4,
+    nome: "doador sem contato; interacao com doacao opcional e pessoa nao registrada (lead)",
+    sql: `
+      ALTER TABLE doador_novo ADD COLUMN sem_contato INTEGER NOT NULL DEFAULT 0 CHECK (sem_contato IN (0, 1));
+      ALTER TABLE interacao_nova ADD COLUMN id_doacao INTEGER REFERENCES doacao_nova(id_doacao) ON DELETE SET NULL;
+      ALTER TABLE interacao_nova ADD COLUMN pessoa_nome TEXT;
+      ALTER TABLE interacao_nova ADD COLUMN pessoa_contato TEXT;
+      CREATE INDEX idx_interacao_doacao ON interacao_nova(id_doacao);
+    `,
+  },
 ];

@@ -43,8 +43,11 @@ function montarPlanilhas(db, { geradoPor = "", agora = new Date() } = {}) {
     .all();
   const interacoes = db
     .prepare(
-      `SELECT i.*, dn.nome AS doador, u.nome AS usuario FROM interacao_nova i
+      `SELECT i.*, dn.nome AS doador, u.nome AS usuario,
+              dc.valor AS doacao_valor, dc.data_doacao AS doacao_data
+       FROM interacao_nova i
        LEFT JOIN doador_novo dn ON dn.id_doador = i.id_doador
+       LEFT JOIN doacao_nova dc ON dc.id_doacao = i.id_doacao
        LEFT JOIN usuario u ON u.id_usuario = CAST(i.id_usuario AS INTEGER)
        ORDER BY i.data_interacao DESC, i.id_interacao DESC`,
     )
@@ -68,12 +71,13 @@ function montarPlanilhas(db, { geradoPor = "", agora = new Date() } = {}) {
   ];
 
   const planDoadores = [
-    ["Código", "Nome", "E-mail", "Telefone", "CPF/CNPJ", "Endereço", "Doações", "Cadastrado em"].map(titulo),
+    ["Código", "Nome", "E-mail", "WhatsApp", "Sem contato", "CPF/CNPJ", "Endereço", "Doações", "Cadastrado em"].map(titulo),
     ...doadores.map((d) => [
       d.id_doador,
       texto(d.nome),
       texto(d.email),
       texto(d.telefone),
+      d.sem_contato === 1 ? "Sim" : "Não",
       texto(d.cpf_cnpj),
       texto(d.endereco),
       doacoes.filter((x) => x.id_doador === d.id_doador).length,
@@ -94,12 +98,15 @@ function montarPlanilhas(db, { geradoPor = "", agora = new Date() } = {}) {
   ];
 
   const planInteracoes = [
-    ["Código", "Doador", "Tipo", "Observações", "Data", "Registrado por"].map(titulo),
+    ["Código", "Doador ou pessoa", "Situação", "Contato (não registrado)", "Tipo", "Observações", "Doação relacionada", "Data", "Registrado por"].map(titulo),
     ...interacoes.map((i) => [
       i.id_interacao,
-      texto(i.doador),
+      texto(i.doador || i.pessoa_nome),
+      i.id_doador === null ? "Não registrado" : "Doador",
+      texto(i.pessoa_contato),
       texto(i.tipo_interacao),
       texto(i.observacoes),
+      i.id_doacao ? `R$ ${Number(i.doacao_valor).toFixed(2).replace(".", ",")} em ${(i.doacao_data || "").split("-").reverse().join("/")}` : null,
       dataSimples(i.data_interacao) ? { value: dataSimples(i.data_interacao), type: Date, format: FORMATO_DATA } : null,
       texto(i.usuario),
     ]),
@@ -111,7 +118,7 @@ function montarPlanilhas(db, { geradoPor = "", agora = new Date() } = {}) {
       sheet: "Doadores",
       data: planDoadores,
       stickyRowsCount: 1,
-      columns: [8, 32, 30, 18, 20, 40, 10, 18].map((width) => ({ width })),
+      columns: [8, 32, 30, 18, 12, 20, 40, 10, 18].map((width) => ({ width })),
     },
     {
       sheet: "Doações",
@@ -123,7 +130,7 @@ function montarPlanilhas(db, { geradoPor = "", agora = new Date() } = {}) {
       sheet: "Interações",
       data: planInteracoes,
       stickyRowsCount: 1,
-      columns: [8, 32, 18, 50, 12, 24].map((width) => ({ width })),
+      columns: [8, 32, 16, 24, 18, 50, 24, 12, 24].map((width) => ({ width })),
     },
   ];
 }

@@ -69,8 +69,102 @@ function mostrarPainelLogin(id) {
     .getElementById("login-card")
     .classList.toggle("login-card-largo", id !== "auth-section");
   showLogin();
-  const primeiroCampo = document.querySelector(`#${id} input`);
+  if (id === "auth-section") preencherEmailLembrado();
+  const primeiroCampo = [...document.querySelectorAll(`#${id} input:not([type=checkbox])`)].find((c) => !c.value);
   if (primeiroCampo) primeiroCampo.focus();
+}
+
+// "Lembrar meu e-mail": guarda só o e-mail neste computador (nunca a senha).
+const CHAVE_EMAIL_LEMBRADO = "fenix.emailLembrado";
+
+function preencherEmailLembrado() {
+  try {
+    const salvo = localStorage.getItem(CHAVE_EMAIL_LEMBRADO);
+    const campo = document.getElementById("email");
+    if (salvo && !campo.value) campo.value = salvo;
+    document.getElementById("lembrarEmail").checked = !!salvo;
+  } catch {}
+}
+
+function guardarEmailLembrado(email) {
+  try {
+    if (document.getElementById("lembrarEmail").checked) localStorage.setItem(CHAVE_EMAIL_LEMBRADO, email);
+    else localStorage.removeItem(CHAVE_EMAIL_LEMBRADO);
+  } catch {}
+}
+
+// Olho para mostrar/ocultar a senha em todos os campos de senha (o login já tem o seu)
+function adicionarOlhoSenha(campo) {
+  if (campo.id === "password" || campo.dataset.olho) return;
+  campo.dataset.olho = "1";
+  const envoltorio = document.createElement("div");
+  envoltorio.className = "campo-senha";
+  campo.parentNode.insertBefore(envoltorio, campo);
+  envoltorio.appendChild(campo);
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "btn-olho";
+  botao.title = "Mostrar ou ocultar a senha";
+  botao.setAttribute("aria-label", "Mostrar ou ocultar a senha");
+  botao.innerHTML = '<i class="fi fi-rr-eye-crossed"></i>';
+  botao.addEventListener("click", () => {
+    const mostrar = campo.type === "password";
+    campo.type = mostrar ? "text" : "password";
+    botao.firstElementChild.className = mostrar ? "fi fi-rr-eye" : "fi fi-rr-eye-crossed";
+    campo.focus();
+  });
+  envoltorio.appendChild(botao);
+}
+
+function adicionarOlhosSenha(raiz = document) {
+  raiz.querySelectorAll('input[type="password"]').forEach(adicionarOlhoSenha);
+}
+
+// Esqueci minha senha: comum pede ao admin; admin usa a chave de recuperação.
+async function esqueciSenha() {
+  const r = await Swal.fire({
+    title: "Esqueci minha senha",
+    icon: "question",
+    html: `<p class="text-start"><strong>Usuário comum:</strong> peça ao administrador para criar uma senha nova
+      (menu Usuários, botão com a chave).</p>
+      <p class="text-start mb-0"><strong>Administrador:</strong> crie uma senha nova usando a
+      <strong>chave de recuperação</strong> impressa no primeiro acesso.</p>`,
+    showCancelButton: true,
+    confirmButtonText: "Sou administrador: usar a chave",
+    cancelButtonText: "Fechar",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+  });
+  if (!r.isConfirmed) return;
+
+  const campo = (id, rotulo, tipo, extra = "") =>
+    `<label class="form-label d-block text-start mt-2" for="${id}">${rotulo}</label>
+     <input type="${tipo}" id="${id}" class="form-control" autocomplete="off" spellcheck="false" ${extra}>`;
+  const f = await Swal.fire({
+    title: "Nova senha de administrador",
+    html:
+      campo("swalEmailAdmin", "E-mail do administrador", "email", `value="${esc(document.getElementById("email").value)}"`) +
+      campo("swalChaveAdmin", "Chave de recuperação", "text", 'placeholder="XXXXXXXX-XXXXXXXX-..."') +
+      campo("swalNovaSenha", "Nova senha (mínimo 8 caracteres)", "password") +
+      campo("swalNovaSenha2", "Repita a nova senha", "password"),
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: "Criar senha nova",
+    cancelButtonText: "Cancelar",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+    didOpen: () => adicionarOlhosSenha(Swal.getHtmlContainer()),
+    preConfirm: () => ["swalEmailAdmin", "swalChaveAdmin", "swalNovaSenha", "swalNovaSenha2"].map((id) => document.getElementById(id).value),
+  });
+  if (!f.isConfirmed) return;
+  const [email, chave, nova, nova2] = f.value;
+  if (nova.length < 8) return aviso("error", "A senha deve ter pelo menos 8 caracteres");
+  if (nova !== nova2) return aviso("error", "As senhas não conferem");
+  const { error } = await sessao.redefinirSenhaComChave(email.trim(), chave, nova);
+  if (error) return aviso("error", error.message);
+  document.getElementById("email").value = email.trim();
+  document.getElementById("password").value = "";
+  aviso("success", "Senha nova criada!", "Entre com a senha nova.");
 }
 
 async function iniciarSistema() {
@@ -97,6 +191,7 @@ async function signIn() {
   const { data, error } = await sessao.entrar(email, password);
   if (error) return aviso("error", error.message);
 
+  guardarEmailLembrado(email);
   document.getElementById("password").value = "";
   toggleSenhaBtn();
   entrarNoSistema(data);
@@ -232,7 +327,10 @@ async function pedirSenhas(titulo, campos, textoConfirmar = "Salvar") {
     cancelButtonText: "Cancelar",
     buttonsStyling: false,
     customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
-    didOpen: () => document.getElementById("swalCampo0").focus(),
+    didOpen: () => {
+      adicionarOlhosSenha(Swal.getHtmlContainer());
+      document.getElementById("swalCampo0").focus();
+    },
     preConfirm: () => campos.map((_, i) => document.getElementById(`swalCampo${i}`).value),
   });
   return isConfirmed ? value : null;
@@ -321,6 +419,8 @@ function abrirModalUsuario(id) {
   document.getElementById("modalUsuarioLabel").textContent = u
     ? "Editar Usuário"
     : "Novo Usuário";
+  const botaoSalvar = document.querySelector("#modalUsuario .modal-footer .btn-orange span");
+  if (botaoSalvar) botaoSalvar.textContent = u ? "Salvar" : "Criar";
   document.getElementById("usuarioId").value = u ? u.id_usuario : "";
   document.getElementById("usuarioNome").value = u ? u.nome : "";
   document.getElementById("usuarioEmail").value = u ? u.email : "";
@@ -598,6 +698,7 @@ async function fluxoRestauracao(info) {
     cancelButtonText: "Cancelar",
     buttonsStyling: false,
     customClass: { confirmButton: "btn btn-danger me-2", cancelButton: "btn btn-ghost" },
+    didOpen: () => adicionarOlhosSenha(Swal.getHtmlContainer()),
     preConfirm: () => document.getElementById("swalSenhaRestaurar").value,
   });
   if (!confirmacao.isConfirmed) return backup.cancelarRestauracao();
@@ -887,7 +988,7 @@ function renderDoadorTable() {
     tbody.innerHTML += `<tr>
       <td>${esc(d.nome)}</td>
       <td>${esc(d.email)}</td>
-      <td>${esc(d.telefone)}</td>
+      <td>${d.telefone ? esc(d.telefone) : d.sem_contato === 1 ? '<span class="badge bg-secondary">Sem contato</span>' : ""}</td>
       <td class="text-center">
         <button type="button" class="btn btn-link p-0" title="Ver doações deste doador" data-click="abrirDoacoesDoador(${d.id_doador})">${totalDoacoes}</button>
       </td>
@@ -1032,6 +1133,10 @@ function initSelectsBuscaDoador() {
   choicesEditDoador = new Choices("#editIdDoador", config);
   choicesDoadorInteracao = new Choices("#idDoadorInteracao", config);
   choicesEditDoadorInteracao = new Choices("#editIdDoadorInteracao", config);
+
+  // Ao trocar o doador da interação: mostra doações dele ou os campos de pessoa não registrada
+  document.getElementById("idDoadorInteracao").addEventListener("change", () => ajustarCamposInteracao(""));
+  document.getElementById("editIdDoadorInteracao").addEventListener("change", () => ajustarCamposInteracao("edit"));
 }
 
 function preencherDropdownDoadores() {
@@ -1040,16 +1145,38 @@ function preencherDropdownDoadores() {
     label: `${d.nome} (${d.email || "sem email"})`,
   }));
 
-  [
-    choicesDoador,
-    choicesEditDoador,
-    choicesDoadorInteracao,
-    choicesEditDoadorInteracao,
-  ].forEach((instancia) => {
+  [choicesDoador, choicesEditDoador].forEach((instancia) => {
     instancia.clearStore();
     instancia.setChoices(opcoes, "value", "label", true);
   });
+
+  // Interações também aceitam alguém que ainda não é doador (lead, prospecção)
+  const opcoesInteracao = [
+    { value: PESSOA_NAO_REGISTRADA, label: "+ Pessoa não registrada (lead / prospecção)" },
+    ...opcoes,
+  ];
+  [choicesDoadorInteracao, choicesEditDoadorInteracao].forEach((instancia) => {
+    instancia.clearStore();
+    instancia.setChoices(opcoesInteracao, "value", "label", true);
+  });
 }
+
+// Data futura só vale para doação Pendente (promessa). Para Pago/Não Pago, o calendário vai até hoje.
+function ajustarLimiteDataEdicao() {
+  const campoData = document.getElementById("editDoacaoData");
+  if (document.getElementById("editDoacaoStatus").value === "Pendente") campoData.removeAttribute("max");
+  else campoData.max = hojeISO();
+}
+
+function conferirDataDoacao(data, status) {
+  if (!data) return aviso("error", "Informe a data da doação") && false;
+  if (data > hojeISO() && status !== "Pendente") {
+    return aviso("error", "Data futura só para doação Pendente", "Uma doação paga (ou não paga) precisa ter data de hoje ou anterior.") && false;
+  }
+  return true;
+}
+
+document.getElementById("editDoacaoStatus").addEventListener("change", ajustarLimiteDataEdicao);
 
 function badgeStatus(status) {
   status = status ? esc(status) : status;
@@ -1102,6 +1229,7 @@ document
   .getElementById("modalNovaInteracao")
   .addEventListener("show.bs.modal", () => {
     document.getElementById("dataInteracao").value = hojeISO();
+    ajustarCamposInteracao("");
   });
 
 async function addDoador() {
@@ -1170,12 +1298,18 @@ async function addDoador() {
     });
   }
 
+  const semContato = document.getElementById("doadorSemContato").checked;
+  if (!semContato && !apenasDigitos(telefone)) {
+    return aviso("error", "Informe o WhatsApp", 'Ou marque "Ainda sem informações de contato".');
+  }
+
   const { error } = await dados.inserir("doador_novo", {
     nome,
     telefone,
     cpf_cnpj: cpf,
     endereco,
     email,
+    sem_contato: semContato ? 1 : 0,
   });
   if (error) {
     return Swal.fire({
@@ -1190,6 +1324,7 @@ async function addDoador() {
     });
   }
 
+  aviso("success", "Doador criado!");
   fecharModal("modalNovoDoador", "formNovoDoador");
   loadDoadores();
 }
@@ -1214,6 +1349,7 @@ function updateDoador(id) {
   document.getElementById("editDoadorTelefone").value = doador.telefone || "";
   document.getElementById("editDoadorCpf").value = doador.cpf_cnpj || "";
   document.getElementById("editDoadorEndereco").value = doador.endereco || "";
+  document.getElementById("editDoadorSemContato").checked = doador.sem_contato === 1;
   document.getElementById("editDoadorEmail").value = doador.email || "";
 
   bootstrap.Modal.getOrCreateInstance(
@@ -1287,12 +1423,18 @@ async function salvarEdicaoDoador() {
     });
   }
 
+  const semContato = document.getElementById("editDoadorSemContato").checked;
+  if (!semContato && !apenasDigitos(telefone)) {
+    return aviso("error", "Informe o WhatsApp", 'Ou marque "Ainda sem informações de contato".');
+  }
+
   const { error } = await dados.atualizar("doador_novo", id, {
     nome,
     telefone,
     cpf_cnpj: cpf,
     endereco,
     email,
+    sem_contato: semContato ? 1 : 0,
   });
   if (error) {
     return Swal.fire({
@@ -1461,6 +1603,9 @@ async function addDoacao() {
     });
   }
 
+  const statusNovo = "Pendente"; // doação nova sempre começa Pendente (data futura = promessa)
+  if (!conferirDataDoacao(dataDoacao, statusNovo)) return;
+
   const { data: doador, error: doadorError } = await dados.obter(
     "doador_novo",
     idDoador,
@@ -1484,7 +1629,7 @@ async function addDoacao() {
     valor: parseFloat(valor),
     data_doacao: dataDoacao,
     forma_pagamento: forma,
-    status: "Pendente",
+    status: statusNovo,
   });
   if (error) {
     return Swal.fire({
@@ -1499,6 +1644,7 @@ async function addDoacao() {
     });
   }
 
+  aviso("success", "Doação criada!");
   fecharModal("modalNovaDoacao", "formNovaDoacao");
   loadDoacoes();
 }
@@ -1524,7 +1670,8 @@ function updateDoacao(id) {
   document.getElementById("editDoacaoData").value = doacao.data_doacao || "";
   document.getElementById("editDoacaoForma").value =
     doacao.forma_pagamento || "";
-  document.getElementById("editDoacaoStatus").value = doacao.status || "";
+  document.getElementById("editDoacaoStatus").value = doacao.status || "Pendente";
+  ajustarLimiteDataEdicao();
 
   bootstrap.Modal.getOrCreateInstance(
     document.getElementById("modalEditarDoacao"),
@@ -1577,6 +1724,8 @@ async function salvarEdicaoDoacao() {
       animation: true,
     });
   }
+
+  if (status && !conferirDataDoacao(dataDoacao, status)) return;
 
   if (!status) {
     return Swal.fire({
@@ -1674,6 +1823,68 @@ function deleteDoacao(id) {
 // =========================
 // INTERAÇÃO NOVA (ong e doador)
 // =========================
+// Valor especial no seletor de doador das interações: pessoa ainda não cadastrada (lead, prospecção).
+const PESSOA_NAO_REGISTRADA = "nao-registrada";
+
+// Texto curto de uma doação para listas e tabelas: "R$ 150,00 — 16/10/2026 (Pago)"
+function resumoDoacao(d) {
+  return `${formatarMoeda(d.valor)} — ${formatarData(d.data_doacao) || "sem data"} (${d.status || "-"})`;
+}
+
+// Mostra/esconde os campos conforme a escolha: doador cadastrado (com doação opcional) ou pessoa não registrada.
+// prefixo: "" (nova interação) ou "edit" (editar).
+function ajustarCamposInteracao(prefixo, idDoacaoAtual = "") {
+  const sufixo = prefixo ? "Edit" : "";
+  const escolha = document.getElementById(prefixo ? "editIdDoadorInteracao" : "idDoadorInteracao").value;
+  const ehLead = escolha === PESSOA_NAO_REGISTRADA;
+  document.getElementById(`grupoPessoa${sufixo}`).classList.toggle("hidden", !ehLead);
+  document.getElementById(`grupoDoacao${sufixo}`).classList.toggle("hidden", ehLead || !escolha);
+
+  const seletor = document.getElementById(`doacaoInteracao${sufixo}`);
+  const doacoes = ehLead || !escolha ? [] : doacoesData.filter((d) => String(d.id_doador) === escolha);
+  seletor.innerHTML =
+    `<option value="">Nenhuma (opcional)</option>` +
+    doacoes.map((d) => `<option value="${d.id_doacao}">${esc(resumoDoacao(d))}</option>`).join("");
+  seletor.value = doacoes.some((d) => String(d.id_doacao) === String(idDoacaoAtual)) ? String(idDoacaoAtual) : "";
+}
+
+// Lê e confere o formulário de interação. Devolve o registro ou null (já avisou o erro).
+function lerFormularioInteracao(prefixo) {
+  const sufixo = prefixo ? "Edit" : "";
+  const campo = (idNovo, idEdit) => document.getElementById(prefixo ? idEdit : idNovo);
+  const escolha = campo("idDoadorInteracao", "editIdDoadorInteracao").value;
+  const tipo = campo("tipoInteracao", "editTipoInteracao").value;
+  const obs = campo("observacoes", "editObservacoes").value.trim();
+  const dataInteracao = campo("dataInteracao", "editDataInteracao").value;
+  const ehLead = escolha === PESSOA_NAO_REGISTRADA;
+  const pessoaNome = document.getElementById(`pessoaNome${sufixo}`).value.trim();
+  const pessoaContato = document.getElementById(`pessoaContato${sufixo}`).value.trim();
+  const idDoacao = document.getElementById(`doacaoInteracao${sufixo}`).value;
+
+  if (!escolha) return aviso("error", "Escolha o doador ou \"Pessoa não registrada\"") && null;
+  if (ehLead && !pessoaNome) return aviso("error", "Informe o nome da pessoa não registrada") && null;
+  if (!tipo) return aviso("error", "Informe o tipo da interação") && null;
+  if (!dataInteracao) return aviso("error", "Informe a data da interação") && null;
+  if (dataInteracao > hojeISO()) return aviso("error", "A data da interação não pode ser no futuro") && null;
+
+  return {
+    id_doador: ehLead ? null : parseInt(escolha),
+    pessoa_nome: ehLead ? pessoaNome : null,
+    pessoa_contato: ehLead ? pessoaContato || null : null,
+    id_doacao: !ehLead && idDoacao ? parseInt(idDoacao) : null,
+    tipo_interacao: tipo,
+    observacoes: obs,
+    data_interacao: dataInteracao,
+  };
+}
+
+// Coluna "Doador" da tabela: doador cadastrado ou pessoa não registrada (com selo)
+function quemDaInteracao(i) {
+  if (i.id_doador !== null && i.id_doador !== undefined) return nomeDoador(i.id_doador);
+  const contato = i.pessoa_contato ? ` (${esc(i.pessoa_contato)})` : "";
+  return `${esc(i.pessoa_nome || "-")}${contato} <span class="badge bg-secondary">Não registrado</span>`;
+}
+
 async function loadInteracoes() {
   const { data, error } = await dados.listar("interacao_nova");
   if (error) return console.error(error);
@@ -1683,12 +1894,14 @@ async function loadInteracoes() {
   const tbody = document.querySelector("#interacaoTable tbody");
   tbody.innerHTML = data.length
     ? ""
-    : `<tr><td colspan="5" class="text-center text-muted">Adicione dados à tabela</td></tr>`;
+    : `<tr><td colspan="6" class="text-center text-muted">Adicione dados à tabela</td></tr>`;
   data.forEach((i) => {
+    const doacao = i.id_doacao ? doacoesData.find((d) => d.id_doacao === i.id_doacao) : null;
     tbody.innerHTML += `<tr>
-      <td>${nomeDoador(i.id_doador)}</td>
+      <td>${quemDaInteracao(i)}</td>
       <td>${esc(i.tipo_interacao)}</td>
       <td>${esc(i.observacoes)}</td>
+      <td class="small">${doacao ? esc(resumoDoacao(doacao)) : "-"}</td>
       <td>${formatarData(i.data_interacao)}</td>
       <td class="actions-td">
         <div class="actions-content">
@@ -1701,216 +1914,48 @@ async function loadInteracoes() {
 }
 
 async function addInteracaoNova() {
-  const tipo = document.getElementById("tipoInteracao").value;
-  const obs = document.getElementById("observacoes").value;
-  const dataInteracao = document.getElementById("dataInteracao").value;
-  const idDoador = document.getElementById("idDoadorInteracao").value || "";
+  const registro = lerFormularioInteracao("");
+  if (!registro) return;
 
-  if (!tipo) {
-    return Swal.fire({
-      icon: "error",
-      title: "Informe o tipo da interação",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
+  // id_usuario é preenchido pelo processo principal a partir da sessão
+  const { error } = await dados.inserir("interacao_nova", registro);
+  if (error) return aviso("error", "Erro ao criar: " + error.message);
 
-  if (dataInteracao && dataInteracao > hojeISO()) {
-    return Swal.fire({
-      icon: "error",
-      title: "A data da interação não pode ser no futuro",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  if (idDoador) {
-    const { data: doador, error: doadorError } = await dados.obter(
-      "doador_novo",
-      idDoador,
-    );
-
-    if (doadorError || !doador) {
-      return Swal.fire({
-        icon: "error",
-        title: "Doador não encontrado! Verifique o ID informado.",
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true,
-        toast: true,
-        animation: true,
-      });
-    }
-  }
-
-  const { error } = await dados.inserir("interacao_nova", {
-    id_doador: idDoador ? parseInt(idDoador) : null,
-    // id_usuario é preenchido pelo processo principal a partir da sessão
-    tipo_interacao: tipo,
-    observacoes: obs,
-    data_interacao: dataInteracao,
-  });
-  if (error) {
-    return Swal.fire({
-      icon: "error",
-      title: "Erro ao salvar, tente novamente: " + error.message,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  Swal.fire({
-    icon: "success",
-    title: "Informações salvas!",
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 1500,
-    timerProgressBar: true,
-    toast: true,
-    animation: true,
-  });
-
+  aviso("success", "Interação criada!");
   fecharModal("modalNovaInteracao", "formNovaInteracao");
+  choicesDoadorInteracao.removeActiveItems();
+  ajustarCamposInteracao("");
   loadInteracoes();
 }
 
 function updateInteracaoNova(id) {
   const interacao = interacoesData.find((i) => i.id_interacao === id);
-  if (!interacao) {
-    return Swal.fire({
-      icon: "error",
-      title: "Interação não encontrada no cache. Recarregue a página.",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
+  if (!interacao) return aviso("error", "Interação não encontrada. Recarregue a página.");
 
   document.getElementById("editInteracaoId").value = interacao.id_interacao;
-  choicesEditDoadorInteracao.setChoiceByValue(String(interacao.id_doador));
-  document.getElementById("editTipoInteracao").value =
-    interacao.tipo_interacao || "";
-  document.getElementById("editObservacoes").value =
-    interacao.observacoes || "";
+  const ehLead = interacao.id_doador === null || interacao.id_doador === undefined;
+  choicesEditDoadorInteracao.setChoiceByValue(ehLead ? PESSOA_NAO_REGISTRADA : String(interacao.id_doador));
+  document.getElementById("pessoaNomeEdit").value = interacao.pessoa_nome || "";
+  document.getElementById("pessoaContatoEdit").value = interacao.pessoa_contato || "";
+  ajustarCamposInteracao("edit", interacao.id_doacao || "");
+  document.getElementById("editTipoInteracao").value = interacao.tipo_interacao || "";
+  document.getElementById("editObservacoes").value = interacao.observacoes || "";
   document.getElementById("editDataInteracao").value = interacao.data_interacao
     ? interacao.data_interacao.split("T")[0]
     : "";
 
-  bootstrap.Modal.getOrCreateInstance(
-    document.getElementById("modalEditarInteracao"),
-  ).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("modalEditarInteracao")).show();
 }
 
 async function salvarEdicaoInteracao() {
   const id = document.getElementById("editInteracaoId").value;
-  const idDoador = document.getElementById("editIdDoadorInteracao").value;
-  const tipo = document.getElementById("editTipoInteracao").value;
-  const obs = document.getElementById("editObservacoes").value;
-  const dataInteracao = document.getElementById("editDataInteracao").value;
+  const registro = lerFormularioInteracao("edit");
+  if (!registro) return;
 
-  if (!idDoador) {
-    return Swal.fire({
-      icon: "error",
-      title: "Informe o ID do Doador!",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
+  const { error } = await dados.atualizar("interacao_nova", id, registro);
+  if (error) return aviso("error", "Erro ao salvar: " + error.message);
 
-  if (!tipo) {
-    return Swal.fire({
-      icon: "error",
-      title: "Informe o tipo da interação",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  if (dataInteracao && dataInteracao > hojeISO()) {
-    return Swal.fire({
-      icon: "error",
-      title: "A data da interação não pode ser no futuro",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  const { data: doador, error: doadorError } = await dados.obter(
-    "doador_novo",
-    idDoador,
-  );
-
-  if (doadorError || !doador) {
-    return Swal.fire({
-      icon: "error",
-      title: "Doador não encontrado! Verifique o ID informado.",
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  const { error } = await dados.atualizar("interacao_nova", id, {
-    id_doador: parseInt(idDoador),
-    tipo_interacao: tipo,
-    observacoes: obs,
-    data_interacao: dataInteracao,
-  });
-  if (error) {
-    return Swal.fire({
-      icon: "error",
-      title: "Erro ao salvar, tente novamente: " + error.message,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true,
-      toast: true,
-      animation: true,
-    });
-  }
-
-  Swal.fire({
-    icon: "success",
-    title: "Informações salvas!",
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 1500,
-    timerProgressBar: true,
-    toast: true,
-    animation: true,
-  });
-
+  aviso("success", "Informações salvas!");
   fecharModal("modalEditarInteracao", "formEditarInteracao");
   loadInteracoes();
 }
@@ -2085,7 +2130,7 @@ const ACOES_PERMITIDAS = new Set([
   "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
   "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
   "exportarCSV", "exportarExcel", "fazerBackupAgora", "abrirPastaBackup", "escolherPastaBackup",
-  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "abrirManual", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "abrirManual", "esqueciSenha", "exportarPDF", "fecharMenuMobile", "imprimirChave",
   "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
   "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
   "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",
@@ -2140,5 +2185,6 @@ function executarAcao(expressao, elemento) {
   });
 });
 
+adicionarOlhosSenha();
 iniciarSistema();
 iniciarInfoAplicativo();

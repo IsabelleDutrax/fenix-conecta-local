@@ -5,6 +5,7 @@
 // - id_usuario das interações vem da sessão, não da tela.
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 const { app, ipcMain } = require("electron");
 const { abrirBanco } = require("../src/dados/banco");
 const { criarRepositorio } = require("../src/dados/repositorio");
@@ -82,6 +83,21 @@ async function estado() {
   return { etapa: "login" };
 }
 
+function verificarBloqueio() {
+  const agora = Date.now();
+  if (agora < bloqueadoAte) {
+    const s = Math.ceil((bloqueadoAte - agora) / 1000);
+    throw erro(`Muitas tentativas. Aguarde ${s} segundos.`, "BLOQUEADO");
+  }
+}
+
+function registrarFalha() {
+  if (++falhas >= LIMITE_FALHAS) {
+    falhas = 0;
+    bloqueadoAte = Date.now() + BLOQUEIO_MS;
+  }
+}
+
 function exigirSessao() {
   if (!db || !sessao) throw erro("Sessão encerrada. Entre novamente.", "SEM_SESSAO");
 }
@@ -135,11 +151,7 @@ const HANDLERS = {
 
   "sessao:entrar": async (email, senha) => {
     if ((await prepararBanco()) !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
-    const agora = Date.now();
-    if (agora < bloqueadoAte) {
-      const s = Math.ceil((bloqueadoAte - agora) / 1000);
-      throw erro(`Muitas tentativas. Aguarde ${s} segundos.`, "BLOQUEADO");
-    }
+    verificarBloqueio();
     try {
       const usuario = usuarios.autenticar(email, senha);
       falhas = 0;
@@ -147,12 +159,28 @@ const HANDLERS = {
       servicoBackup.verificarAgenda(); // no máximo um backup automático por dia
       return s;
     } catch (e) {
-      if (e.code === "CREDENCIAIS" && ++falhas >= LIMITE_FALHAS) {
-        falhas = 0;
-        bloqueadoAte = agora + BLOQUEIO_MS;
-      }
+      if (e.code === "CREDENCIAIS") registrarFalha();
       throw e;
     }
+  },
+
+  // "Esqueci minha senha" do ADMINISTRADOR: a chave de recuperação prova que é a pessoa
+  // responsável (ela já abre todos os dados). Usuário comum pede ao administrador.
+  "sessao:redefinirSenhaComChave": async (email, chaveTexto, novaSenha) => {
+    if ((await prepararBanco()) !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
+    verificarBloqueio();
+    const chave = chaves.formatarChave(chaveTexto);
+    const chaveOk =
+      !!chave && !!chaveAtual && chave.length === chaveAtual.length &&
+      crypto.timingSafeEqual(Buffer.from(chave), Buffer.from(chaveAtual));
+    const usuario = usuarios.obterPorEmail(email);
+    if (!chaveOk || !usuario || !usuario.admin || !usuario.ativo) {
+      registrarFalha();
+      throw erro("E-mail de administrador ou chave de recuperação incorretos.", "CREDENCIAIS");
+    }
+    usuarios.definirSenha(usuario.id_usuario, novaSenha);
+    falhas = 0;
+    return true;
   },
 
   "sessao:sair": () => {
