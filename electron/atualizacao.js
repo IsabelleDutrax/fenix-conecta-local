@@ -6,7 +6,16 @@
 // - Sem internet: falha em silêncio e tenta de novo depois. O uso diário não depende disso.
 // O electron-updater usa uma sessão de rede própria ("electron-updater"); o bloqueio de
 // internet da janela (main.js) continua valendo para as telas.
-const { app, ipcMain } = require("electron");
+const path = require("node:path");
+const fs = require("node:fs");
+const { app, ipcMain, shell } = require("electron");
+
+// Manual do usuário (PDF): no instalador fica em resources/; em desenvolvimento, em docs/.
+function caminhoManual() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "Manual-Fenix-Conecta.pdf")
+    : path.join(__dirname, "..", "docs", "Manual-Fenix-Conecta.pdf");
+}
 
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
 
@@ -43,6 +52,13 @@ function criarAtualizacao({ obterJanela, antesDeInstalar }) {
       if (!origemValida(evento)) return { data: null, error: { message: "Origem não autorizada.", code: "ORIGEM" } };
       return { data: { versao: app.getVersion(), atualizacaoPronta: versaoPronta }, error: null };
     });
+    ipcMain.handle("app:abrirManual", async (evento) => {
+      if (!origemValida(evento)) return { data: null, error: { message: "Origem não autorizada.", code: "ORIGEM" } };
+      const arquivo = caminhoManual();
+      if (!fs.existsSync(arquivo)) return { data: null, error: { message: "Manual não encontrado.", code: "SEM_MANUAL" } };
+      const falha = await shell.openPath(arquivo); // abre no leitor de PDF do Windows
+      return falha ? { data: null, error: { message: falha, code: "ABRIR_MANUAL" } } : { data: true, error: null };
+    });
     ipcMain.handle("atualizacao:instalarAgora", (evento) => {
       if (!origemValida(evento)) return { data: null, error: { message: "Origem não autorizada.", code: "ORIGEM" } };
       if (!autoUpdater || !versaoPronta) {
@@ -63,4 +79,4 @@ function criarAtualizacao({ obterJanela, antesDeInstalar }) {
   };
 }
 
-module.exports = { criarAtualizacao };
+module.exports = { criarAtualizacao, caminhoManual };

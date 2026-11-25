@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld("backup", {
 
 contextBridge.exposeInMainWorld("aplicativo", {
   info: chamar("app:info"),
+  abrirManual: chamar("app:abrirManual"),
   instalarAtualizacaoAgora: chamar("atualizacao:instalarAgora"),
   // Avisa a tela quando uma atualização terminou de baixar (só repassa a versão).
   aoAtualizacaoPronta: (callback) =>

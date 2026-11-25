@@ -677,6 +677,12 @@ function mostrarAvisoAtualizacao(versao) {
 
 aplicativo.aoAtualizacaoPronta(({ versao }) => mostrarAvisoAtualizacao(versao));
 
+async function abrirManual() {
+  fecharMenuMobile();
+  const { error } = await aplicativo.abrirManual();
+  if (error) aviso("error", "Não foi possível abrir o manual", error.message);
+}
+
 async function instalarAtualizacao() {
   const r = await Swal.fire({
     title: "Instalar atualização agora?",
@@ -797,7 +803,8 @@ function valorParaOrdenar(texto, tipo) {
   }
 
   if (tipo === "moeda") {
-    return parseFloat(limpo.replace(/[^\d.,-]/g, "").replace(",", ".")) || 0;
+    // "R$ 1.500,00" -> 1500.00 (ponto de milhar removido, vírgula decimal)
+    return parseFloat(limpo.replace(/[^\d,-]/g, "").replace(",", ".")) || 0;
   }
 
   if (tipo === "data") {
@@ -909,7 +916,7 @@ function abrirDoacoesDoador(idDoador) {
     ? doacoesDoDoador
         .map(
           (d) => `<tr>
-            <td>R$ ${d.valor}</td>
+            <td>${formatarMoeda(d.valor)}</td>
             <td>${destaqueDataFutura(d.data_doacao)}${formatarData(d.data_doacao)}</td>
             <td>${badgeStatus(d.status)}</td>
           </tr>`,
@@ -1053,6 +1060,10 @@ function badgeStatus(status) {
   };
   const cor = cores[status] || "bg-secondary";
   return `<span class="badge ${cor}">${status || "-"}</span>`;
+}
+
+function formatarMoeda(valor) {
+  return (Number(valor) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function formatarData(data) {
@@ -1389,7 +1400,7 @@ async function loadDoacoes() {
   data.forEach((d) => {
     tbody.innerHTML += `<tr>
       <td>${nomeDoador(d.id_doador)}</td>
-      <td>R$ <strong>${d.valor}</strong></td>
+      <td><strong>${formatarMoeda(d.valor)}</strong></td>
       <td>${destaqueDataFutura(d.data_doacao)}${formatarData(d.data_doacao)}</td>
       <td>${badgeStatus(d.status)}</td>
       <td class="actions-td">
@@ -2074,7 +2085,7 @@ const ACOES_PERMITIDAS = new Set([
   "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
   "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
   "exportarCSV", "exportarExcel", "fazerBackupAgora", "abrirPastaBackup", "escolherPastaBackup",
-  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "abrirManual", "exportarPDF", "fecharMenuMobile", "imprimirChave",
   "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
   "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
   "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",

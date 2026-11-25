@@ -9,7 +9,9 @@ Programa de computador (Electron) para gestão de doações da ONG Fênix. Os da
 ```bash
 npm install
 npm start      # abre o programa
-npm test       # testes da camada de dados
+npm test       # testes da camada de dados (50)
+npm run test:e2e # testes de ponta a ponta no programa real (119 verificações, pastas temporárias)
+npm run manual # recaptura as telas e gera docs/Manual-Fenix-Conecta.pdf
 npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 ```
 
@@ -26,6 +28,12 @@ npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 - Lembrete semanal de cópia em pendrive para o administrador; status "Último backup" no rodapé.
 - **Exportar Excel (consulta)** no Dashboard (administrador): cópia com data no nome, aba LEIA-ME com aviso LGPD.
 - Testes: `FENIX_PASTA_BACKUP=<pasta>` redireciona os backups; `FENIX_TESTE_DIALOGO=<pasta>` responde às janelas de escolher pasta/salvar. Ambos ignorados no instalador.
+
+## Documentação
+
+- `docs/Manual-Fenix-Conecta.pdf` — manual do usuário (MAN-FC-001), também aberto pelo botão **Ajuda (manual)** do programa.
+- `docs/CHECKLIST-ENTREGA.md` — checklist de instalação e entrega na ONG (CHK-FC-001).
+- `PLANO.md` — fases, decisões e pendências.
 
 ## Instalador e atualização automática
 
@@ -72,7 +80,9 @@ src/dados/configuracao.js configurações (chave/valor) no banco
 electron/backup-servico.js agenda diária, OneDrive, pendrive, restaurar, Excel
 vendor/                 bibliotecas embutidas (gerado por npm run vendor; ver vendor/VERSOES.md)
 scripts/copiar-vendor.js copia as bibliotecas de node_modules para vendor/
-test/                   testes (node --test)
+test/                   testes da camada de dados (node --test)
+test-e2e/               testes de ponta a ponta (npm run test:e2e)
+docs/                   manual (PDF + fonte HTML + telas) e checklist de entrega
 ```
 
 ---
