@@ -27,6 +27,27 @@ npm run vendor # recopia as bibliotecas para vendor/ (após mudar versões)
 - **Exportar Excel (consulta)** no Dashboard (administrador): cópia com data no nome, aba LEIA-ME com aviso LGPD.
 - Testes: `FENIX_PASTA_BACKUP=<pasta>` redireciona os backups; `FENIX_TESTE_DIALOGO=<pasta>` responde às janelas de escolher pasta/salvar. Ambos ignorados no instalador.
 
+## Instalador e atualização automática
+
+```bash
+npm run dist         # gera dist\Fenix-Conecta-Setup-<versão>.exe (não publica)
+npm run dist:pasta   # gera dist\win-unpacked (programa sem instalador, para testes)
+npm run publicar     # gera e publica no GitHub Releases (exige GH_TOKEN; só com autorização)
+```
+
+- Instalador de um clique, **por usuário** (não pede senha de administrador do Windows), em `%LOCALAPPDATA%\Programs\fenix-conecta-local`. Cria atalho "Fênix Conecta" na área de trabalho e no menu Iniciar.
+- Ao terminar a instalação o programa abre sozinho (tela de primeiro acesso).
+- Instalação/desinstalação silenciosa (TI): `Fenix-Conecta-Setup-<versão>.exe /S` e `"Uninstall Fenix Conecta.exe" /S`, rodando pelo PowerShell ou CMD (o Git Bash troca `/S` por um caminho e o modo silencioso não funciona).
+- Desinstalar **não apaga os dados** (`%APPDATA%\FenixConecta`) nem os backups.
+- Atualização: o programa instalado consulta o GitHub Releases 10 s após abrir e a cada 6 h, baixa em segundo plano e instala ao fechar (ou na hora, pelo aviso "Atualização pronta" no menu). Faz um backup antes de instalar. Sem internet, o uso diário continua normal.
+- Para publicar uma versão nova: aumentar `version` no `package.json`, rodar `npm run publicar` com `GH_TOKEN` definido. Os programas instalados se atualizam sozinhos.
+- Sem assinatura digital, o Windows mostra "O Windows protegeu o computador" na primeira instalação: clicar em **Mais informações → Executar assim mesmo**.
+- Autoteste do programa instalado (não usa dados reais):
+
+```bash
+"%LOCALAPPDATA%\Programs\fenix-conecta-local\Fenix Conecta.exe" --verificar-instalacao --saida=%TEMP%\fenix-autoteste.json
+```
+
 ## Segurança e modo offline
 
 - Funciona sem internet: todas as bibliotecas e fontes ficam em `vendor/`.

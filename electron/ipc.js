@@ -48,15 +48,23 @@ function fecharBanco() {
 }
 
 // Abre o banco se possível. Devolve o estado da inicialização para a tela.
+// Chamadas simultâneas (ex.: estado + entrar) esperam a mesma abertura.
+let preparando = null;
 function prepararBanco() {
+  if (db) return Promise.resolve("aberto");
+  if (!preparando) preparando = abrirComChaveGuardada().finally(() => (preparando = null));
+  return preparando;
+}
+
+async function abrirComChaveGuardada() {
   if (db) return "aberto";
   const existeBanco = fs.existsSync(arquivoBanco());
-  let chave = chaves.lerChave(pasta());
+  let chave = await chaves.lerChave(pasta());
 
   if (!chave) {
     // Nunca criar chave nova para um banco já existente: os dados ficariam inacessíveis.
     if (existeBanco || chaves.existeChave(pasta())) return "recuperar";
-    chave = chaves.criarChave(pasta());
+    chave = await chaves.criarChave(pasta());
   }
   try {
     abrirCom(chave);
@@ -67,8 +75,8 @@ function prepararBanco() {
   }
 }
 
-function estado() {
-  if (prepararBanco() === "recuperar") return { etapa: "recuperar" };
+async function estado() {
+  if ((await prepararBanco()) === "recuperar") return { etapa: "recuperar" };
   if (usuarios.contar() === 0) return { etapa: "primeiro_acesso" };
   if (sessao) return { etapa: "logado", usuario: sessao };
   return { etapa: "login" };
@@ -117,16 +125,16 @@ const servicoBackup = criarServicoBackup({
 const HANDLERS = {
   "sessao:estado": () => estado(),
 
-  "sessao:primeiroAcesso": (dadosAdmin) => {
-    if (prepararBanco() !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
+  "sessao:primeiroAcesso": async (dadosAdmin) => {
+    if ((await prepararBanco()) !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
     const admin = usuarios.criarPrimeiroAdmin(dadosAdmin || {});
-    const resultado = { usuario: abrirSessao(admin), chaveRecuperacao: chaves.lerChave(pasta()) };
+    const resultado = { usuario: abrirSessao(admin), chaveRecuperacao: chaveAtual };
     servicoBackup.verificarAgenda(); // primeiro backup já no primeiro acesso
     return resultado;
   },
 
-  "sessao:entrar": (email, senha) => {
-    if (prepararBanco() !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
+  "sessao:entrar": async (email, senha) => {
+    if ((await prepararBanco()) !== "aberto") throw erro("Banco indisponível.", "SEM_BANCO");
     const agora = Date.now();
     if (agora < bloqueadoAte) {
       const s = Math.ceil((bloqueadoAte - agora) / 1000);
@@ -155,8 +163,8 @@ const HANDLERS = {
   "sessao:atual": () => sessao,
 
   // Abre o banco com a chave de recuperação impressa e guarda a chave de novo neste Windows.
-  "sessao:recuperar": (entrada) => {
-    if (db) return { etapa: estado().etapa };
+  "sessao:recuperar": async (entrada) => {
+    if (db) return { etapa: (await estado()).etapa };
     const chave = chaves.formatarChave(entrada);
     if (!chave) throw erro("Chave incompleta: são 64 letras/números (8 grupos de 8).", "CHAVE_FORMATO");
     try {
@@ -165,14 +173,14 @@ const HANDLERS = {
       if (e.code === "CHAVE_INVALIDA") throw erro("Chave de recuperação incorreta.", "CHAVE_INVALIDA");
       throw e;
     }
-    chaves.salvarChave(pasta(), chave);
-    return { etapa: estado().etapa };
+    await chaves.salvarChave(pasta(), chave);
+    return { etapa: (await estado()).etapa };
   },
 
   "sessao:verChaveRecuperacao": (senha) => {
     exigirAdmin();
     if (!usuarios.conferirSenha(sessao.id_usuario, senha)) throw erro("Senha incorreta.", "CREDENCIAIS");
-    return chaves.lerChave(pasta());
+    return chaveAtual; // a mesma chave que abriu o banco
   },
 
   "sessao:alterarMinhaSenha": (senhaAtual, novaSenha) => {
@@ -252,10 +260,14 @@ function registrarCanais() {
   }
 }
 
+function backupAntesDeAtualizar() {
+  return servicoBackup.backupAvulso();
+}
+
 function fecharDados() {
   sessao = null;
   servicoBackup.parar();
   fecharBanco();
 }
 
-module.exports = { registrarCanais, fecharDados, arquivoBanco };
+module.exports = { registrarCanais, fecharDados, backupAntesDeAtualizar, origemValida, arquivoBanco };

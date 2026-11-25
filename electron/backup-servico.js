@@ -30,6 +30,10 @@ function detectarOneDrive() {
 }
 
 function pastaPadrao() {
+  // Autoteste do programa instalado: nunca grava no OneDrive/Documentos reais.
+  if (process.argv.includes("--verificar-instalacao")) {
+    return { pasta: path.join(app.getPath("userData"), "backups-autoteste"), tipo: "teste" };
+  }
   if (emTeste() && process.env.FENIX_PASTA_BACKUP) {
     return { pasta: path.resolve(process.env.FENIX_PASTA_BACKUP), tipo: "teste" };
   }
@@ -301,7 +305,7 @@ function criarServicoBackup(ctx) {
       return true;
     },
 
-    "backup:confirmarRestauracao": (senha) => {
+    "backup:confirmarRestauracao": async (senha) => {
       ctx.exigirAdmin();
       if (!pendente || !pendente.arquivoTemp) throw erro("Escolha e confira o backup primeiro.", "SEM_BACKUP");
       if (!ctx.conferirSenha(senha)) throw erro("Senha incorreta.", "CREDENCIAIS");
@@ -317,7 +321,7 @@ function criarServicoBackup(ctx) {
       try {
         bkp.substituirBanco(ctx.arquivoBanco(), restaurado.arquivoTemp);
         ctx.reabrirBanco(restaurado.chave);
-        if (restaurado.chave !== chaveAnterior) ctx.salvarChave(restaurado.chave);
+        if (restaurado.chave !== chaveAnterior) await ctx.salvarChave(restaurado.chave);
       } catch (e) {
         // Volta ao estado anterior a partir da cópia de segurança.
         console.error("[restauração] falhou, voltando dados anteriores:", e);
@@ -359,7 +363,17 @@ function criarServicoBackup(ctx) {
     },
   };
 
-  return { aoAbrirBanco, verificarAgenda, parar, handlers };
+  // Backup fora da agenda (ex.: antes de instalar uma atualização). Nunca lança erro.
+  function backupAvulso() {
+    try {
+      if (ctx.db() && ctx.contarUsuarios() > 0) return executar();
+    } catch (e) {
+      console.error("[backup avulso]", e.message);
+    }
+    return null;
+  }
+
+  return { aoAbrirBanco, verificarAgenda, backupAvulso, parar, handlers };
 }
 
 module.exports = { criarServicoBackup };

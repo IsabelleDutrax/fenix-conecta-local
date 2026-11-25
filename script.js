@@ -658,6 +658,42 @@ async function exportarExcel() {
   if (r.isDenied) backup.mostrarExcel();
 }
 
+// --------------
+// VERSÃO E ATUALIZAÇÃO AUTOMÁTICA (download e instalação no processo principal)
+// --------------
+async function iniciarInfoAplicativo() {
+  const { data } = await aplicativo.info();
+  if (!data) return;
+  document.querySelectorAll(".versao-app").forEach((el) => (el.textContent = `Versão ${data.versao}`));
+  if (data.atualizacaoPronta) mostrarAvisoAtualizacao(data.atualizacaoPronta);
+}
+
+function mostrarAvisoAtualizacao(versao) {
+  const el = document.getElementById("avisoAtualizacao");
+  el.querySelector("span").textContent = `Atualização ${versao} pronta`;
+  el.title = "Será instalada quando o programa for fechado. Clique para instalar agora.";
+  el.classList.remove("hidden");
+}
+
+aplicativo.aoAtualizacaoPronta(({ versao }) => mostrarAvisoAtualizacao(versao));
+
+async function instalarAtualizacao() {
+  const r = await Swal.fire({
+    title: "Instalar atualização agora?",
+    html: `O programa faz um backup, fecha, instala a nova versão e abre de novo (cerca de 1 minuto).<br>
+      <small class="text-muted">Se preferir, continue usando: a atualização será instalada quando você fechar o programa.</small>`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Instalar agora",
+    cancelButtonText: "Depois",
+    buttonsStyling: false,
+    customClass: { confirmButton: "btn btn-orange me-2", cancelButton: "btn btn-ghost" },
+  });
+  if (!r.isConfirmed) return;
+  const { error } = await aplicativo.instalarAtualizacaoAgora();
+  if (error) aviso("error", error.message);
+}
+
 // Atualiza o rodapé de tempos em tempos (o backup automático roda no processo principal).
 setInterval(() => {
   if (currentUser) atualizarStatusBackup();
@@ -2038,7 +2074,7 @@ const ACOES_PERMITIDAS = new Set([
   "alterarMinhaSenha", "concluirPrimeiroAcesso", "copiarChave", "copiarMensagemLembrete",
   "criarPrimeiroAdmin", "deleteDoacao", "deleteDoador", "deleteInteracaoNova",
   "exportarCSV", "exportarExcel", "fazerBackupAgora", "abrirPastaBackup", "escolherPastaBackup",
-  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "exportarPDF", "fecharMenuMobile", "imprimirChave",
+  "copiarParaPendrive", "restaurarDaLista", "restaurarDeArquivo", "instalarAtualizacao", "exportarPDF", "fecharMenuMobile", "imprimirChave",
   "liberarContinuar", "ordenarTabela", "recuperarComChave", "redefinirSenhaUsuario",
   "renderDashboard", "salvarEdicaoDoacao", "salvarEdicaoDoador", "salvarEdicaoInteracao",
   "salvarUsuario", "showPage", "signIn", "signOut", "toggleSenhaBtn", "updateDoacao",
@@ -2094,3 +2130,4 @@ function executarAcao(expressao, elemento) {
 });
 
 iniciarSistema();
+iniciarInfoAplicativo();

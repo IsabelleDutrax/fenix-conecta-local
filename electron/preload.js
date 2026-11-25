@@ -42,6 +42,14 @@ contextBridge.exposeInMainWorld("backup", {
   mostrarExcel: chamar("exportar:mostrarExcel"),
 });
 
+contextBridge.exposeInMainWorld("aplicativo", {
+  info: chamar("app:info"),
+  instalarAtualizacaoAgora: chamar("atualizacao:instalarAgora"),
+  // Avisa a tela quando uma atualização terminou de baixar (só repassa a versão).
+  aoAtualizacaoPronta: (callback) =>
+    ipcRenderer.on("atualizacao:pronta", (_evento, dados) => callback({ versao: String(dados && dados.versao) })),
+});
+
 contextBridge.exposeInMainWorld("usuarios", {
   listar: chamar("usuarios:listar"),
   criar: chamar("usuarios:criar"),

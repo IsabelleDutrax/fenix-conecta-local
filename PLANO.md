@@ -3,8 +3,8 @@
 | Campo | Valor |
 |---|---|
 | Documento | PLANO.md |
-| Revisão | 04 |
-| Data | 23/11/2026 |
+| Revisão | 05 |
+| Data | 25/11/2026 |
 | Responsável | Isabelle Dutra |
 | Origem | Fork local de `IsabelleDutrax/sistema-mvp-ong-fenix` (histórico preservado; remote `upstream` somente leitura) |
 
@@ -20,7 +20,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | **Por quê** | O cliente exige que os dados sensíveis fiquem só na máquina dele. O usuário final não é técnico. |
 | **Onde** | PC Windows do cliente. Programa em `Arquivos de Programas`; dados em `%APPDATA%\FenixConecta\dados`. |
 | **Quem** | Desenvolvimento: Isabelle Dutra (com suporte de IA). Uso: equipe da ONG (admin + usuários comuns). |
-| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026. Datas das fases 6 e 7 a definir com a responsável. |
+| **Quando** | Fases 1, 2 e 3 em 17/11/2026; fases 4 e 5 em 23/11/2026; fase 6 em 25/11/2026. Data da fase 7 a definir com a responsável. |
 | **Como** | Electron + SQLite criptografado (`better-sqlite3-multiple-ciphers`, esquema SQLCipher v4), IPC com `contextIsolation`, instalador `.exe` com atualização via GitHub Releases. |
 | **Quanto** | Sem custo de licença (bibliotecas MIT). Custo de assinatura de código do instalador: precisa de validação (ver decisões em aberto). |
 
@@ -33,7 +33,7 @@ O sistema passa de site com Supabase para programa de computador (Electron) com 
 | 3 Login local | Tabela `usuario` (migração 2), senha com hash scrypt, níveis de acesso (admin = 99, comum = 1), tela de primeiro acesso que cria o admin e mostra a **chave de recuperação** para imprimir, tela de recuperação, gestão de usuários e troca de senha. Regras de acesso no processo principal. | Login sem internet; usuário comum não vê funções de admin. | Concluída |
 | 4 Offline | Bibliotecas e fonte embutidas em `vendor/` (`npm run vendor`, versões fixas, licenças incluídas). CSP restritiva (sem script inline, sem eval, sem internet). Handlers `onclick` trocados por despachante com lista branca. Rede bloqueada no processo principal (só arquivos do programa). Crédito Flaticon no rodapé. | App funciona com a rede desligada. | Concluída |
 | 5 Excel e backup | Exportar Excel (cópia de consulta com data no nome + aviso LGPD). Backup criptografado diário na pasta do OneDrive (retenção 30 dias), aviso semanal de pendrive, botão "Restaurar backup", rodapé "Último backup". | Backup gerado, restaurado e verificado em teste. | Concluída — detalhes abaixo |
-| 6 Instalador e atualização | `electron-builder` (NSIS `.exe`) + `electron-updater` via GitHub Releases. | Instalar, atualizar e desinstalar sem perder dados. | Pendente |
+| 6 Instalador e atualização | `electron-builder` (NSIS `.exe`) + `electron-updater` via GitHub Releases. | Instalar, atualizar e desinstalar sem perder dados. | Concluída — detalhes abaixo (publicação da 1ª versão aguarda autorização) |
 | 7 Testes e manual | Testes de ponta a ponta, manual ilustrado para usuário não técnico, checklist de entrega. | Manual revisado; testes verdes. | Pendente |
 
 ## Arquitetura (após fase 2)
@@ -73,6 +73,18 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 | Excel | Somente administrador. Aviso LGPD antes de gerar. Nome `Fenix Conecta - consulta - DD-MM-AAAA.xlsx`. Aba LEIA-ME com aviso de dados pessoais e "alterações não voltam para o sistema"; abas Doadores, Doações, Interações. |
 | Removido | Botão "Backup completo" (JSON sem criptografia) do Dashboard. |
 
+## Fase 6 — como ficou
+
+| Item | Comportamento |
+|---|---|
+| Instalador | `Fenix-Conecta-Setup-<versão>.exe` (NSIS, um clique, **por usuário**, sem senha de administrador do Windows). Atalho "Fênix Conecta" na área de trabalho e no menu Iniciar. |
+| Dados | Ficam em `%APPDATA%\FenixConecta`, fora da pasta do programa. Desinstalar e atualizar **não apagam** dados nem backups. |
+| Atualização | `electron-updater` consulta o GitHub Releases 10 s após abrir e a cada 6 h; baixa em segundo plano; instala ao fechar ou pelo aviso "Atualização pronta" no menu. Backup automático antes de instalar. Sem internet: nada muda no uso diário. |
+| Segurança | A atualização usa uma sessão de rede própria do processo principal; a janela continua sem acesso à internet. Pacote só com o binário Windows do SQLite (sem código-fonte nem outros sistemas). |
+| Chave do banco | Migrada para a API assíncrona do `safeStorage` (a síncrona ficou obsoleta no Electron 45). Compatível com chaves já gravadas. |
+| Autoteste | `"Fenix Conecta.exe" --verificar-instalacao --saida=<arquivo.json>`: confere chave, banco cifrado, migrações, backup, Excel, telas offline e canais, numa pasta temporária (nunca usa dados reais nem o OneDrive). |
+| Versão | Exibida no rodapé do login e do menu. |
+
 ## Decisões em aberto
 
 1. ~~Nome do repositório~~: resolvido em 17/11/2026 — `IsabelleDutrax/fenix-conecta-local` (público).
@@ -81,7 +93,9 @@ electron/main.js  ── ipcMain ──►  src/dados/repositorio.js  (CRUD, lis
 4. **Valor monetário** armazenado como `REAL` (paridade com o sistema atual). Na fase 5 o Excel formata como moeda (R$ 0,00) e não houve diferença nos testes. Manter `REAL`; reavaliar só se surgirem somas com centavos incorretos.
 6. **Excel só para administrador** (decisão da fase 5, por conter todos os dados pessoais). Validar com o cliente.
 7. **Exportar CSV/PDF por tabela** (herdado do sistema web) continua disponível a todos e gera arquivo sem criptografia, sem aviso LGPD. Opções: (a) manter; (b) restringir ao administrador e incluir o mesmo aviso do Excel. Recomendado: (b).
-5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação.
+5. **Assinatura de código** do instalador (evita alerta do Windows SmartScreen): custo e fornecedor precisam de validação. Sem ela, o manual (fase 7) mostra o passo "Mais informações → Executar assim mesmo".
+8. **Publicar a 1ª versão no GitHub Releases** (`npm run publicar`, exige token do GitHub): aguarda autorização da responsável. Sem release publicada, a atualização automática não tem o que baixar.
+9. **Uso em mais de um computador**: cada instalação tem banco próprio. Se a ONG precisar de uso simultâneo em vários PCs, avaliar fase extra "computador servidor na rede local" (dados continuam na ONG).
 
 ---
 Elaborado com suporte de IA — Revisado por Isabelle Dutra
