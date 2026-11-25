@@ -8,6 +8,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test \"test/**/*.test.js\"",
+    "test:e2e": "node scripts/e2e.js",
     "build:css": "sass scss/main.scss:style.css --no-source-map --style=expanded",
     "watch:css": "sass --watch scss/main.scss:style.css --no-source-map --style=expanded",
     "vendor": "node scripts/copiar-vendor.js",
